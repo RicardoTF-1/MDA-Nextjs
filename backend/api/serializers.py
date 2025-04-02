@@ -1,7 +1,7 @@
 # backend/api/serializers.py
 
 from rest_framework import serializers
-from .models import Location, CourseCategory, Course, ClassSchedule, Testimonial, FAQ, BlogPost, ContactForm
+from .models import Location, CourseCategory, Course, ClassSchedule, Testimonial, FAQ, BlogPost, ContactForm, SliderImage
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,3 +50,22 @@ class ContactFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactForm
         fields = ('name', 'email', 'phone', 'subject', 'message')
+
+
+
+# api/serializers.py
+class SliderImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SliderImage
+        fields = ['id', 'title', 'subtitle', 'image', 'image_url', 'button_text', 'button_link', 'order', 'is_active']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+

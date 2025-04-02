@@ -108,3 +108,24 @@ class ContactForm(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.subject}"
+
+
+
+# backend/api/models.py (add this to your existing models)
+
+class SliderImage(models.Model):
+    title = models.CharField(max_length=100)
+    subtitle = models.CharField(max_length=200, blank=True)
+    image = models.ImageField(upload_to='slider/')
+    button_text = models.CharField(max_length=50, blank=True)
+    button_link = models.CharField(max_length=200, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['order']
+

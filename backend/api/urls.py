@@ -4,7 +4,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     LocationViewSet, CourseCategoryViewSet, CourseViewSet, ClassScheduleViewSet,
-    TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet
+    TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet, SliderImageViewSet, LocationViewSet
 )
 
 router = DefaultRouter()
@@ -16,6 +16,8 @@ router.register(r'testimonials', TestimonialViewSet)
 router.register(r'faqs', FAQViewSet)
 router.register(r'blog', BlogPostViewSet)
 router.register(r'contact', ContactFormViewSet, basename='contact')
+router.register(r'slider-images', SliderImageViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),
