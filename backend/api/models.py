@@ -108,3 +108,43 @@ class ContactForm(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.subject}"
+    
+class Banner(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to='banners/')
+    button_text = models.CharField(max_length=100)
+    button_link = models.CharField(max_length=200)
+    button_color = models.CharField(max_length=50, default='bg-green-500 hover:bg-green-600', 
+                                   help_text="Tailwind CSS classes for button color")
+    order = models.PositiveSmallIntegerField(default=0, help_text="Display order of the banner")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['order', '-created_at']
+        
+# backend/api/models.py
+
+# Add this to your existing models.py file
+class ServiceCategory(models.Model):
+    title = models.CharField(max_length=100)
+    subtitle = models.CharField(max_length=100, blank=True, null=True)
+    icon_svg = models.TextField(help_text="SVG code for the icon")
+    link = models.CharField(max_length=200)
+    order = models.PositiveSmallIntegerField(default=0, help_text="Display order of the category")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['order', 'title']
+        verbose_name = "Service Category"
+        verbose_name_plural = "Service Categories"

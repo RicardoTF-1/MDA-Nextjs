@@ -3,10 +3,12 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Location, CourseCategory, Course, ClassSchedule, Testimonial, FAQ, BlogPost, ContactForm
+from .models import (Location, CourseCategory, Course, ClassSchedule,
+    Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory)
 from .serializers import (
     LocationSerializer, CourseCategorySerializer, CourseSerializer, ClassScheduleSerializer,
-    TestimonialSerializer, FAQSerializer, BlogPostSerializer, ContactFormSerializer
+    TestimonialSerializer, FAQSerializer, BlogPostSerializer, ContactFormSerializer,
+    BannerSerializer, ServiceCategorySerializer
 )
 
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -100,3 +102,20 @@ class ContactFormViewSet(viewsets.GenericViewSet):
             serializer.save()
             return Response({'message': 'Thank you for your message. We will contact you soon.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# backend/api/views.py
+
+class BannerViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Banner.objects.filter(is_active=True).order_by('order')
+    serializer_class = BannerSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ServiceCategory.objects.filter(is_active=True).order_by('order')
+    serializer_class = ServiceCategorySerializer
+    permission_classes = [permissions.AllowAny]

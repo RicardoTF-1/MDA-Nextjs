@@ -1,7 +1,8 @@
 # backend/api/serializers.py
 
 from rest_framework import serializers
-from .models import Location, CourseCategory, Course, ClassSchedule, Testimonial, FAQ, BlogPost, ContactForm
+from .models import (Location, CourseCategory, Course, ClassSchedule,
+        Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory)
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,3 +51,22 @@ class ContactFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactForm
         fields = ('name', 'email', 'phone', 'subject', 'message')
+        
+class BannerSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Banner
+        fields = ['id', 'title', 'description', 'image', 'image_url', 'button_text', 
+                  'button_link', 'button_color', 'order']
+    
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url') and request is not None:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+    
+class ServiceCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceCategory
+        fields = ['id', 'title', 'subtitle', 'icon_svg', 'link', 'order']
