@@ -102,8 +102,6 @@ class ContactFormViewSet(viewsets.GenericViewSet):
             serializer.save()
             return Response({'message': 'Thank you for your message. We will contact you soon.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# backend/api/views.py
 
 class BannerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Banner.objects.filter(is_active=True).order_by('order')

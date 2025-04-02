@@ -128,9 +128,6 @@ class Banner(models.Model):
     class Meta:
         ordering = ['order', '-created_at']
         
-# backend/api/models.py
-
-# Add this to your existing models.py file
 class ServiceCategory(models.Model):
     title = models.CharField(max_length=100)
     subtitle = models.CharField(max_length=100, blank=True, null=True)
