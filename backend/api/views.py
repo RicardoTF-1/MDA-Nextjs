@@ -125,9 +125,15 @@ class ContactFormViewSet(viewsets.GenericViewSet):
             return Response({'message': 'Thank you for your message. We will contact you soon.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class BannerViewSet(viewsets.ReadOnlyModelViewSet):
+class BannerViewSet(viewsets.ReadOnlyModelViewSet):  # Note: should be ReadOnlyModelViewSet not ReadOnlyViewSet
     queryset = Banner.objects.filter(is_active=True).order_by('order')
     serializer_class = BannerSerializer
+    permission_classes = [permissions.AllowAny]  # Make sure this is set to AllowAny
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 # api/views.py
 class SliderImageViewSet(viewsets.ReadOnlyModelViewSet):
