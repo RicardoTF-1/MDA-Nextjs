@@ -2,6 +2,10 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+import requests
+from django.conf import settings
+
+# backend/api/models.py (update your existing Location model)
 
 class Location(models.Model):
     name = models.CharField(max_length=100)
@@ -11,9 +15,63 @@ class Location(models.Model):
     zip_code = models.CharField(max_length=20)
     phone = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
+    # Add these new fields
+    image = models.ImageField(upload_to='locations/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    #Thi is for the google maps component
+    order = models.PositiveSmallIntegerField(default=0)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # backend/api/models.py - add this to your Location model
+
+def geocode_address(self):
+    """Geocode the address to get latitude and longitude"""
+    if not self.latitude or not self.longitude:
+        try:
+            address = f"{self.address}, {self.city}, {self.state} {self.zip_code}"
+            params = {
+                'address': address,
+                'key': settings.GOOGLE_MAPS_API_KEY
+            }
+            response = requests.get('https://maps.googleapis.com/maps/api/geocode/json', params=params)
+            data = response.json()
+            
+            if data['status'] == 'OK':
+                location = data['results'][0]['geometry']['location']
+                self.latitude = location['lat']
+                self.longitude = location['lng']
+        except Exception as e:
+            print(f"Geocoding error: {e}")
+
+    def save(self, *args, **kwargs):
+        self.geocode_address()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.name} - {self.city}, {self.state}"
+    
+    class Meta:
+        ordering = ['order', 'name']
+
+
+# Modelo para el componente de poner horarios en el homepage
+
+class ClassSchedule(models.Model):
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='schedules')
+    date = models.DateField()
+    time = models.TimeField()
+    registration_link = models.CharField(max_length=255, default="/contacto")
+    is_full = models.BooleanField(default=False)
+    
+    def __str__(self):
+        formatted_date = self.date.strftime("%d de %B").lower()
+        formatted_time = self.time.strftime("%H:%M")
+        return f"{self.location.name} - {formatted_date}, {formatted_time}"
+
+    class Meta:
+        ordering = ['date', 'time']
+
+
 
 class CourseCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -42,18 +100,7 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
-class ClassSchedule(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='schedules')
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='schedules')
-    start_date = models.DateField()
-    end_date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    days_of_week = models.CharField(max_length=100)  # e.g., "Mon, Wed, Fri"
-    max_students = models.PositiveIntegerField(default=20)
-    
-    def __str__(self):
-        return f"{self.course.title} at {self.location.name} ({self.start_date})"
+
 
 class Testimonial(models.Model):
     name = models.CharField(max_length=100)
@@ -137,11 +184,23 @@ class ServiceCategory(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+
+# backend/api/models.py (add this to your existing models)
+
+class SliderImage(models.Model):
+    title = models.CharField(max_length=100)
+    subtitle = models.CharField(max_length=200, blank=True)
+    image = models.ImageField(upload_to='slider/')
+    button_text = models.CharField(max_length=50, blank=True)
+    button_link = models.CharField(max_length=200, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.title
     
     class Meta:
-        ordering = ['order', 'title']
-        verbose_name = "Service Category"
-        verbose_name_plural = "Service Categories"
+        ordering = ['order']

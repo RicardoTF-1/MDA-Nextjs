@@ -5,8 +5,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     LocationViewSet, CourseCategoryViewSet, CourseViewSet, ClassScheduleViewSet,
     TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet,
-    BannerViewSet, ServiceCategoryViewSet
-)
+    BannerViewSet, ServiceCategoryViewSet,
+    TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet, SliderImageViewSet, LocationViewSet)
 
 router = DefaultRouter()
 router.register(r'locations', LocationViewSet)
@@ -19,6 +19,8 @@ router.register(r'blog', BlogPostViewSet)
 router.register(r'contact', ContactFormViewSet, basename='contact')
 router.register(r'banners', BannerViewSet, basename='banner')
 router.register(r'service-categories', ServiceCategoryViewSet, basename='service-category')
+router.register(r'slider-images', SliderImageViewSet)
+
 
 
 urlpatterns = [

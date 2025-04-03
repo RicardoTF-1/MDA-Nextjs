@@ -1,20 +1,42 @@
 # backend/api/views.py
-
+from django.utils import timezone
+from django.db.models import Prefetch
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import (Location, CourseCategory, Course, ClassSchedule,
-    Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory)
+    Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory, SliderImage)
 from .serializers import (
     LocationSerializer, CourseCategorySerializer, CourseSerializer, ClassScheduleSerializer,
     TestimonialSerializer, FAQSerializer, BlogPostSerializer, ContactFormSerializer,
-    BannerSerializer, ServiceCategorySerializer
-)
+    BannerSerializer, ServiceCategorySerializer, LocationWithSchedulesSerializer, SliderImageSerializer)
+
 
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
     permission_classes = [permissions.AllowAny]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    # Aquí va la acción personalizada
+    @action(detail=False, methods=['get'])
+    def with_schedules(self, request):
+        """Get all active locations with their upcoming schedules"""
+        locations = Location.objects.filter(is_active=True).prefetch_related(
+            Prefetch(
+                'schedules',
+                queryset=ClassSchedule.objects.filter(
+                    date__gte=timezone.now().date()
+                ).order_by('date', 'time')
+            )
+        ).order_by('order', 'name')
+        
+        serializer = LocationWithSchedulesSerializer(locations, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CourseCategory.objects.all()
@@ -106,6 +128,11 @@ class ContactFormViewSet(viewsets.GenericViewSet):
 class BannerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Banner.objects.filter(is_active=True).order_by('order')
     serializer_class = BannerSerializer
+
+# api/views.py
+class SliderImageViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = SliderImage.objects.filter(is_active=True)
+    serializer_class = SliderImageSerializer
     permission_classes = [permissions.AllowAny]
     
     def get_serializer_context(self):
@@ -117,3 +144,6 @@ class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ServiceCategory.objects.filter(is_active=True).order_by('order')
     serializer_class = ServiceCategorySerializer
     permission_classes = [permissions.AllowAny]
+        # return context
+
+
