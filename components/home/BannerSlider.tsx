@@ -17,7 +17,15 @@ export default function BannerSlider() {
       try {
         setIsLoading(true);
         const data = await fetchBanners();
-        setBannerSlides(data);
+        
+        // Only update state if we actually got data back
+        if (Array.isArray(data) && data.length > 0) {
+          setBannerSlides(data);
+        } else {
+          // Handle empty array as an error case
+          console.warn('No banner data returned from API');
+          setError('No banner images available');
+        }
       } catch (err) {
         console.error('Error loading banners:', err);
         setError('Could not load banner images');
@@ -101,7 +109,7 @@ export default function BannerSlider() {
       {bannerSlides.map((slide, index) => {
         // Get the full image URL
         const imageUrl = slide.image_url || 
-                        (slide.image && slide.image.startsWith('http') ? slide.image : `http://localhost:8000${slide.image}`);
+                        (slide.image && slide.image.startsWith('http') ? slide.image : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000'}${slide.image}`);
         
         return (
           <div

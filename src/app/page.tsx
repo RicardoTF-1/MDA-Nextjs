@@ -6,6 +6,9 @@ import LocationMap from '/components/home/LocationMap'
 import Slider from '../../components/home/Slider'
 import UpcomingClasses from '../../components/home/UpcomingClasses'
 import LocationFinder from '../../components/home/LocationFinder'
+import BannerSlider from '../../components/home/BannerSlider'
+import StatsSection from '../../components/home/StatsSection'
+import CategorySection from '../../components/home/CategorySection'
 
 export default function Home() {
   return (
@@ -13,6 +16,9 @@ export default function Home() {
       <Slider/>
       <UpcomingClasses />
       <Hero />
+      <StatsSection/>
+      <BannerSlider/>
+      <CategorySection/>
       <CourseHighlights />
       <LocationFinder />
       <Testimonials />

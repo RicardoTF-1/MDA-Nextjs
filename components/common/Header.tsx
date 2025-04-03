@@ -22,7 +22,7 @@ export default function Header() {
               <Link href="/cursos" className="py-2 transition hover:text-blue-600">
                 Cursos
               </Link>
-              <Link href="/centro-de-conocimiento" className="py-2 transition hover:text-blue-600">
+              <Link href="/knowledge-hub" className="py-2 transition hover:text-blue-600">
                 Centro de Conocimiento
               </Link>
               <Link href="/ubicaciones" className="py-2 transition hover:text-blue-600">
