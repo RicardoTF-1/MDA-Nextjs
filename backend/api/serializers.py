@@ -3,10 +3,22 @@
 from rest_framework import serializers
 from .models import Location, CourseCategory, Course, ClassSchedule, Testimonial, FAQ, BlogPost, ContactForm, SliderImage
 
+# backend/api/serializers.py
 class LocationSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Location
-        fields = '__all__'
+        fields = ['id', 'name', 'address', 'city', 'state', 'zip_code', 
+                  'phone', 'email', 'image', 'image_url', 'is_active', 'order']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return f"http://localhost:8000{obj.image.url}"
+        return None
 
 class CourseCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,3 +81,39 @@ class SliderImageSerializer(serializers.ModelSerializer):
             return obj.image.url
         return None
 
+
+
+# Modelo para los horarios y location del home componente
+
+class ClassScheduleSerializer(serializers.ModelSerializer):
+    formatted_date = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ClassSchedule
+        fields = ['id', 'date', 'time', 'formatted_date', 'registration_link', 'is_full']
+        
+    def get_formatted_date(self, obj):
+        # Convert date to Spanish format like "24 DE MARZO"
+        months = {
+            1: 'ENERO', 2: 'FEBRERO', 3: 'MARZO', 4: 'ABRIL', 5: 'MAYO', 
+            6: 'JUNIO', 7: 'JULIO', 8: 'AGOSTO', 9: 'SEPTIEMBRE', 
+            10: 'OCTUBRE', 11: 'NOVIEMBRE', 12: 'DICIEMBRE'
+        }
+        return f"{obj.date.day} DE {months[obj.date.month]}, {obj.time.strftime('%H:%M')}"
+
+# Add this to your existing LocationSerializer or create a new one
+class LocationWithSchedulesSerializer(serializers.ModelSerializer):
+    schedules = ClassScheduleSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Location
+        fields = ['id', 'name', 'city', 'state', 'image', 'image_url', 'schedules']
+        
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return f"http://localhost:8000{obj.image.url}"
+        return None

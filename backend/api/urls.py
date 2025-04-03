@@ -19,6 +19,7 @@ router.register(r'contact', ContactFormViewSet, basename='contact')
 router.register(r'slider-images', SliderImageViewSet)
 
 
+
 urlpatterns = [
     path('', include(router.urls)),
 ]
