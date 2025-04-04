@@ -85,6 +85,7 @@ class CourseCategory(models.Model):
         verbose_name_plural = "Course Categories"
 
 class Course(models.Model):
+    # Existing fields
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     category = models.ForeignKey(CourseCategory, on_delete=models.CASCADE, related_name='courses')
@@ -94,6 +95,19 @@ class Course(models.Model):
     duration = models.CharField(max_length=100)  # e.g., "8 weeks", "3 months"
     is_featured = models.BooleanField(default=False)
     image = models.ImageField(upload_to='courses/', blank=True, null=True)
+    
+    # New fields for course finder
+    AGE_RANGES = (
+        ('teen', 'Teen (15-18)'),
+        ('adult', 'Adult (19+)'),
+        ('international', 'International Driver'),
+        ('all', 'All Ages')
+    )
+    age_range = models.CharField(max_length=20, choices=AGE_RANGES, default='all')
+    experience_level = models.ManyToManyField('CourseFinderOption', blank=True, related_name='suited_courses')
+    available_locations = models.ManyToManyField('Location', blank=True, related_name='available_courses')
+    bullet_points = models.TextField(blank=True, null=True, help_text="Course highlights/features (one per line)")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -129,20 +143,48 @@ class FAQ(models.Model):
         verbose_name = "FAQ"
         verbose_name_plural = "FAQs"
 
+# backend/api/models.py
+
+# Add these models to your existing models.py file
+class BlogCategory(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True, null=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name_plural = "Blog Categories"
+
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
+    category = models.ForeignKey(BlogCategory, on_delete=models.CASCADE, related_name='posts', null=True)
+    excerpt = models.TextField(blank=True, null=True, help_text="A short summary of the post (optional)")
     content = models.TextField()
-    excerpt = models.TextField(blank=True, null=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
     featured_image = models.ImageField(upload_to='blog/', blank=True, null=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
     is_published = models.BooleanField(default=False)
     published_date = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_featured = models.BooleanField(default=False, help_text="Feature this post on the homepage")
+    meta_description = models.CharField(max_length=160, blank=True, null=True, help_text="Meta description for SEO (optional)")
     
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        if self.is_published and not self.published_date:
+            self.published_date = timezone.now()
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['-published_date', '-created_at']
 
 class ContactForm(models.Model):
     name = models.CharField(max_length=100)
@@ -204,3 +246,93 @@ class SliderImage(models.Model):
     
     class Meta:
         ordering = ['order']
+        
+# Add this to your existing models.py file
+
+class SiteSettings(models.Model):
+    site_name = models.CharField(max_length=100, default="My Drive Academy")
+    logo = models.ImageField(upload_to='site/', help_text="Site logo (light version for dark backgrounds)")
+    logo_dark = models.ImageField(upload_to='site/', help_text="Site logo (dark version for light backgrounds)", blank=True, null=True)
+    favicon = models.ImageField(upload_to='site/', blank=True, null=True)
+    primary_color = models.CharField(max_length=20, default="#4ade80", help_text="Primary color in hex format (e.g. #4ade80)")
+    secondary_color = models.CharField(max_length=20, default="#60a5fa", help_text="Secondary color in hex format (e.g. #60a5fa)")
+    footer_text = models.TextField(blank=True, null=True)
+    copyright_text = models.CharField(max_length=255, default="© {year} My Drive Academy. All rights reserved.")
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+    
+    def __str__(self):
+        return "Site Settings"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists
+        if SiteSettings.objects.exists() and not self.pk:
+            raise ValidationError("Only one site settings instance can exist")
+        super().save(*args, **kwargs)
+
+# Course Finder models
+
+class CourseFinderQuestion(models.Model):
+    QUESTION_TYPES = (
+        ('age_group', 'Age Group'),
+        ('location', 'Location'),
+        ('experience', 'Driving Experience'),
+        ('custom', 'Custom Question'),
+    )
+    
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    question_text = models.CharField(max_length=255)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.get_question_type_display()}: {self.question_text}"
+    
+    class Meta:
+        ordering = ['order']
+
+class CourseFinderOption(models.Model):
+    question = models.ForeignKey(CourseFinderQuestion, on_delete=models.CASCADE, related_name='options')
+    option_text = models.CharField(max_length=255)
+    order = models.PositiveSmallIntegerField(default=0)
+    
+    # For location questions, we can link directly to Location model
+    location = models.ForeignKey('Location', on_delete=models.SET_NULL, null=True, blank=True, 
+                                related_name='finder_options')
+    
+    def __str__(self):
+        return self.option_text
+    
+    class Meta:
+        ordering = ['order']
+
+class CourseRecommendationRule(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    
+    # Key criteria
+    age_groups = models.ManyToManyField(CourseFinderOption, blank=True, related_name='age_rules',
+                                       limit_choices_to={'question__question_type': 'age_group'})
+    locations = models.ManyToManyField('Location', blank=True, related_name='location_rules')
+    experience_levels = models.ManyToManyField(CourseFinderOption, blank=True, related_name='experience_rules',
+                                              limit_choices_to={'question__question_type': 'experience'})
+    
+    # Recommended course - use the existing Course model
+    recommended_course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='recommendation_rules')
+    
+    # Priority if multiple rules match (higher number = higher priority)
+    priority = models.PositiveSmallIntegerField(default=0)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['-priority']
+        
+    def get_recommended_course(self):
+        """Retrieve the recommended course with all its details."""
+        return self.recommended_course

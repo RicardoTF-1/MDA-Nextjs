@@ -10,7 +10,7 @@ export default function Navigation({ mobile }) {
   const navItems = [
     { name: 'Inicio', href: '/' },
     { name: 'Cursos', href: '/cursos' },
-    { name: 'Centro de Conocimiento', href: '/centro-de-conocimiento' },
+    { name: 'Knowledge Hub', href: '/knowledge-hub' },
     { name: 'Ubicaciones', href: '/ubicaciones' },
     { name: 'Contacto', href: '/contacto' },
   ]
