@@ -2,7 +2,8 @@
 
 from rest_framework import serializers
 from .models import (Location, CourseCategory, Course, ClassSchedule,
-        Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory, SliderImage)
+        Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory, SliderImage, BlogCategory,
+        SiteSettings, CourseFinderQuestion, CourseFinderOption, CourseRecommendationRule)
 
 # backend/api/serializers.py
 class LocationSerializer(serializers.ModelSerializer):
@@ -51,13 +52,65 @@ class FAQSerializer(serializers.ModelSerializer):
         model = FAQ
         fields = '__all__'
 
-class BlogPostSerializer(serializers.ModelSerializer):
-    author_name = serializers.ReadOnlyField(source='author.get_full_name')
+class BlogCategorySerializer(serializers.ModelSerializer):
+    post_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BlogCategory
+        fields = ['id', 'name', 'slug', 'description', 'post_count']
+    
+    def get_post_count(self, obj):
+        return obj.posts.filter(is_published=True).count()
+
+class BlogPostListSerializer(serializers.ModelSerializer):
+    category_name = serializers.ReadOnlyField(source='category.name')
+    category_slug = serializers.ReadOnlyField(source='category.slug')
+    author_name = serializers.SerializerMethodField()
+    featured_image_url = serializers.SerializerMethodField()
+    reading_time = serializers.SerializerMethodField()
     
     class Meta:
         model = BlogPost
-        fields = '__all__'
-        read_only_fields = ('author', 'author_name', 'created_at', 'updated_at')
+        fields = [
+            'id', 'title', 'slug', 'excerpt', 'featured_image', 'featured_image_url', 
+            'author', 'author_name', 'published_date', 'category', 'category_name', 
+            'category_slug', 'is_featured', 'reading_time'
+        ]
+    
+    def get_author_name(self, obj):
+        return obj.author.get_full_name() or obj.author.username
+    
+    def get_featured_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.featured_image and hasattr(obj.featured_image, 'url') and request is not None:
+            return request.build_absolute_uri(obj.featured_image.url)
+        return None
+    
+    def get_reading_time(self, obj):
+        # Calculate approximate reading time (assuming 200 words per minute)
+        word_count = len(obj.content.split())
+        minutes = max(1, round(word_count / 200))
+        return minutes
+
+class BlogPostDetailSerializer(BlogPostListSerializer):
+    content = serializers.CharField()
+    related_posts = serializers.SerializerMethodField()
+    
+    class Meta(BlogPostListSerializer.Meta):
+        fields = BlogPostListSerializer.Meta.fields + ['content', 'meta_description', 'related_posts']
+    
+    def get_related_posts(self, obj):
+        # Get 3 related posts from the same category, excluding the current post
+        related = BlogPost.objects.filter(
+            category=obj.category, 
+            is_published=True
+        ).exclude(id=obj.id).order_by('-published_date')[:3]
+        
+        return BlogPostListSerializer(
+            related, 
+            many=True, 
+            context=self.context
+        ).data
 
 class ContactFormSerializer(serializers.ModelSerializer):
     class Meta:
@@ -136,3 +189,86 @@ class LocationWithSchedulesSerializer(serializers.ModelSerializer):
             return f"http://localhost:8000{obj.image.url}"
         return None
 
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+    logo_dark_url = serializers.SerializerMethodField()
+    favicon_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SiteSettings
+        fields = ['site_name', 'logo', 'logo_url', 'logo_dark', 'logo_dark_url', 
+                  'favicon', 'favicon_url', 'primary_color', 'secondary_color', 
+                  'footer_text', 'copyright_text']
+    
+    def get_logo_url(self, obj):
+        if obj.logo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None
+    
+    def get_logo_dark_url(self, obj):
+        if obj.logo_dark:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.logo_dark.url)
+            return obj.logo_dark.url
+        return None
+    
+    def get_favicon_url(self, obj):
+        if obj.favicon:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.favicon.url)
+            return obj.favicon.url
+        return None
+    
+class LocationLightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ['id', 'name', 'city', 'state']
+
+class CourseFinderOptionSerializer(serializers.ModelSerializer):
+    location_details = LocationLightSerializer(source='location', read_only=True)
+    
+    class Meta:
+        model = CourseFinderOption
+        fields = ['id', 'option_text', 'order', 'location', 'location_details']
+
+class CourseFinderQuestionSerializer(serializers.ModelSerializer):
+    options = CourseFinderOptionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = CourseFinderQuestion
+        fields = ['id', 'question_type', 'question_text', 'order', 'options']
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    bullet_point_list = serializers.SerializerMethodField()
+    category_name = serializers.ReadOnlyField(source='category.name')
+    locations = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Course
+        fields = [
+            'id', 'title', 'slug', 'description', 'price', 'discounted_price', 
+            'duration', 'is_featured', 'image', 'bullet_point_list', 
+            'category_name', 'locations', 'age_range'
+        ]
+    
+    def get_bullet_point_list(self, obj):
+        if obj.bullet_points:
+            return [point.strip() for point in obj.bullet_points.split('\n') if point.strip()]
+        # Extract bullet points from description if not explicitly provided
+        return [point.strip() for point in obj.description.split('\n') if point.strip()]
+    
+    def get_locations(self, obj):
+        return [
+            f"{location.name}, {location.city}" 
+            for location in obj.available_locations.filter(is_active=True)
+        ]
+
+class CourseRecommendationSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    description = serializers.CharField()
+    course_details = CourseDetailSerializer()
