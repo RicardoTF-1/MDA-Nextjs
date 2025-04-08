@@ -1,4 +1,4 @@
-// app/contacto/page.js
+// app/contact/page.js
 import ContactForm from '/components/contact/ContactForm'
 
 export const metadata = {

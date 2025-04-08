@@ -99,7 +99,7 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/courses" className="py-2 text-white hover:text-green-400 transition">
                 COURSES
               </Link>
               <Link href="/locations" className="py-2 text-white hover:text-green-400 transition">

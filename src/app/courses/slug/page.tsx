@@ -1,4 +1,4 @@
-// app/cursos/[slug]/page.js
+// app/courses/[slug]/page.js
 import { fetchCourseBySlug } from '/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'

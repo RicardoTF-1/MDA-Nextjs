@@ -21,15 +21,6 @@ export default function HeroSlider() {
         console.error('Error loading slider images:', err)
         setError('Could not load slider images')
         
-        // Set fallback image for development
-        setImages([{
-          id: 1,
-          title: "Master the road. Drive with confidence.",
-          subtitle: "We build drivers with an understanding of safety, a focus on skill development, and a commitment to lifelong road excellence.",
-          image_url: "/images/hero-bg.jpg",
-          button_text: "Get in Touch",
-          button_link: "/contact"
-        }])
       } finally {
         setLoading(false)
       }

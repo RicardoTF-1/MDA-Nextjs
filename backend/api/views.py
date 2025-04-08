@@ -1,23 +1,29 @@
 # backend/api/views.py
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import (Location, CourseCategory, Course, ClassSchedule,
     Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory, SliderImage, BlogCategory,
-    SiteSettings, CourseFinderQuestion, CourseFinderOption, CourseRecommendationRule)
+    SiteSettings, CourseFinderQuestion, CourseFinderOption, CourseRecommendationRule,
+    CourseSubcategory, CourseLocation)
 from .serializers import (
     LocationSerializer, CourseCategorySerializer, CourseSerializer, ClassScheduleSerializer,
     TestimonialSerializer, FAQSerializer, ContactFormSerializer,
     BannerSerializer, ServiceCategorySerializer, LocationWithSchedulesSerializer, SliderImageSerializer,
     BlogCategorySerializer, BlogPostListSerializer, BlogPostDetailSerializer, SiteSettingsSerializer,
-    CourseFinderQuestionSerializer, CourseRecommendationSerializer)
+    CourseFinderQuestionSerializer, CourseRecommendationSerializer,
+    CourseCategoryListSerializer, CourseCategoryDetailSerializer,
+    CourseSubcategorySerializer, CourseListSerializer, CourseDetailSerializer,
+    LocationSerializer, CourseLocationSerializer
+    )
 
 
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Location.objects.all()
+    queryset = Location.objects.filter(is_active=True).order_by('order')
     serializer_class = LocationSerializer
     permission_classes = [permissions.AllowAny]
     
@@ -26,7 +32,6 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         context['request'] = self.request
         return context
     
-    # Aquí va la acción personalizada
     @action(detail=False, methods=['get'])
     def with_schedules(self, request):
         """Get all active locations with their upcoming schedules"""
@@ -41,32 +46,170 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = LocationWithSchedulesSerializer(locations, many=True, context={'request': request})
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def courses(self, request, pk=None):
+        """Get courses available at this location"""
+        location = self.get_object()
+        course_locations = CourseLocation.objects.filter(
+            location=location,
+            is_available=True
+        )
+        courses = [cl.course for cl in course_locations if cl.course.is_active]
+        
+        serializer = CourseListSerializer(courses, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = CourseCategory.objects.all()
-    serializer_class = CourseCategorySerializer
-    permission_classes = [permissions.AllowAny]
-    lookup_field = 'slug'
-
-class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+    queryset = CourseCategory.objects.filter(is_active=True).order_by('order')
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
     
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return CourseCategoryDetailSerializer
+        return CourseCategoryListSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    @action(detail=True, methods=['get'])
+    def subcategories(self, request, slug=None):
+        """Get all subcategories for a specific category"""
+        category = self.get_object()
+        subcategories = CourseSubcategory.objects.filter(
+            category=category,
+            is_active=True
+        ).order_by('order')
+        
+        serializer = CourseSubcategorySerializer(
+            subcategories, 
+            many=True, 
+            context={'request': request}
+        )
+        
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def courses(self, request, slug=None):
+        """
+        Get all courses for a category.
+        If subcategory slug is provided, filter by that subcategory.
+        """
+        category = self.get_object()
+        subcategory_slug = request.query_params.get('subcategory')
+        
+        if subcategory_slug:
+            subcategory = get_object_or_404(
+                CourseSubcategory, 
+                category=category,
+                slug=subcategory_slug,
+                is_active=True
+            )
+            courses = Course.objects.filter(
+                subcategory=subcategory,
+                is_active=True
+            ).order_by('order')
+        else:
+            # If no subcategory, get direct courses for this category
+            courses = Course.objects.filter(
+                category=category,
+                subcategory__isnull=True,
+                is_active=True
+            ).order_by('order')
+        
+        serializer = CourseListSerializer(courses, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+class CourseSubcategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CourseSubcategory.objects.filter(is_active=True).order_by('order')
+    serializer_class = CourseSubcategorySerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'slug'
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
     def get_queryset(self):
-        queryset = Course.objects.all()
-        category_slug = self.request.query_params.get('category', None)
+        queryset = super().get_queryset()
+        category_slug = self.request.query_params.get('category')
+        
+        if category_slug:
+            queryset = queryset.filter(category__slug=category_slug)
+        
+        return queryset
+    
+    @action(detail=True, methods=['get'])
+    def courses(self, request, slug=None):
+        """Get all courses for a specific subcategory"""
+        subcategory = self.get_object()
+        courses = Course.objects.filter(
+            subcategory=subcategory,
+            is_active=True
+        ).order_by('order')
+        
+        serializer = CourseListSerializer(courses, many=True, context={'request': request})
+        return Response(serializer.data)
+
+class CourseViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Course.objects.filter(is_active=True).order_by('order')
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'slug'
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return CourseDetailSerializer
+        return CourseListSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_slug = self.request.query_params.get('category')
+        subcategory_slug = self.request.query_params.get('subcategory')
         
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
             
+        if subcategory_slug:
+            queryset = queryset.filter(subcategory__slug=subcategory_slug)
+        
         return queryset
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        featured_courses = Course.objects.filter(is_featured=True)[:6]
+        featured_courses = self.get_queryset().filter(is_featured=True)[:6]
         serializer = self.get_serializer(featured_courses, many=True)
+        return Response(serializer.data)
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Location.objects.filter(is_active=True).order_by('order')
+    serializer_class = LocationSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    @action(detail=True, methods=['get'])
+    def courses(self, request, pk=None):
+        """Get courses available at this location"""
+        location = self.get_object()
+        course_locations = CourseLocation.objects.filter(
+            location=location,
+            is_available=True
+        )
+        courses = [cl.course for cl in course_locations if cl.course.is_active]
+        
+        serializer = CourseListSerializer(courses, many=True, context={'request': request})
         return Response(serializer.data)
 
 class ClassScheduleViewSet(viewsets.ReadOnlyModelViewSet):
@@ -233,8 +376,60 @@ class ServiceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ServiceCategory.objects.filter(is_active=True).order_by('order')
     serializer_class = ServiceCategorySerializer
     permission_classes = [permissions.AllowAny]
-        # return context
-
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ServiceCategoryDetailSerializer
+        return ServiceCategorySerializer
+    
+    @action(detail=True, methods=['get'])
+    def subcategories(self, request, pk=None):
+        """Get all subcategories for a specific service category"""
+        category = self.get_object()
+        subcategories = ServiceSubcategory.objects.filter(
+            category=category,
+            is_active=True
+        ).order_by('order')
+        
+        serializer = ServiceSubcategorySerializer(
+            subcategories, 
+            many=True, 
+            context={'request': request}
+        )
+        
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def car_lessons(self, request):
+        """Specific endpoint for in-car lessons subcategories"""
+        try:
+            category = ServiceCategory.objects.get(
+                title__icontains='car', 
+                is_active=True
+            )
+            subcategories = ServiceSubcategory.objects.filter(
+                category=category,
+                is_active=True
+            ).order_by('order')
+            
+            serializer = ServiceSubcategorySerializer(
+                subcategories, 
+                many=True, 
+                context={'request': request}
+            )
+            
+            return Response({
+                'category': ServiceCategorySerializer(category, context={'request': request}).data,
+                'subcategories': serializer.data
+            })
+        except ServiceCategory.DoesNotExist:
+            return Response({'error': 'In-car lessons category not found'}, status=404)
+        
 class SiteSettingsView(APIView):
     permission_classes = [permissions.AllowAny]
     

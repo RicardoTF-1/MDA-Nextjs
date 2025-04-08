@@ -3,7 +3,8 @@
 from rest_framework import serializers
 from .models import (Location, CourseCategory, Course, ClassSchedule,
         Testimonial, FAQ, BlogPost, ContactForm, Banner, ServiceCategory, SliderImage, BlogCategory,
-        SiteSettings, CourseFinderQuestion, CourseFinderOption, CourseRecommendationRule)
+        SiteSettings, CourseFinderQuestion, CourseFinderOption, CourseRecommendationRule, 
+        CourseLocation, CourseSubcategory)
 
 # backend/api/serializers.py
 class LocationSerializer(serializers.ModelSerializer):
@@ -135,6 +136,78 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceCategory
         fields = ['id', 'title', 'subtitle', 'icon_svg', 'link', 'order']
+        
+class CourseLocationSerializer(serializers.ModelSerializer):
+    location_details = LocationSerializer(source='location', read_only=True)
+    
+    class Meta:
+        model = CourseLocation
+        fields = ['id', 'location', 'location_details', 'is_available']
+        
+class CourseListSerializer(serializers.ModelSerializer):
+    bullet_point_list = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'slug', 'subtitle', 'description', 
+                 'bullet_point_list', 'header_color', 'is_featured', 
+                 'has_free_pickup', 'price']
+    
+    def get_bullet_point_list(self, obj):
+        if obj.bullet_points:
+            return [point.strip() for point in obj.bullet_points.split('\n') if point.strip()]
+        return []
+
+class CourseDetailSerializer(CourseListSerializer):
+    locations = CourseLocationSerializer(many=True, read_only=True)
+    category_name = serializers.ReadOnlyField(source='category.name')
+    subcategory_name = serializers.ReadOnlyField(source='subcategory.name')
+    
+    class Meta:
+        model = Course
+        fields = CourseListSerializer.Meta.fields + [
+            'locations', 'category_name', 'subcategory_name'
+        ]
+
+class CourseSubcategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    courses = CourseListSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = CourseSubcategory
+        fields = ['id', 'name', 'slug', 'description', 'image', 'image_url', 
+                 'order', 'is_active', 'is_highlighted', 'courses']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+class CourseCategoryListSerializer(serializers.ModelSerializer):
+    icon_html = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseCategory
+        fields = ['id', 'name', 'slug', 'description', 'icon_svg', 'icon_html', 'order']
+    
+    def get_icon_html(self, obj):
+        return obj.icon_svg
+
+class CourseCategoryDetailSerializer(serializers.ModelSerializer):
+    subcategories = CourseSubcategorySerializer(many=True, read_only=True)
+    direct_courses = CourseListSerializer(many=True, read_only=True)
+    has_subcategories = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseCategory
+        fields = ['id', 'name', 'slug', 'description', 'icon_svg', 
+                 'subcategories', 'direct_courses', 'has_subcategories']
+    
+    def get_has_subcategories(self, obj):
+        return obj.subcategories.filter(is_active=True).exists()
 
 # api/serializers.py
 class SliderImageSerializer(serializers.ModelSerializer):

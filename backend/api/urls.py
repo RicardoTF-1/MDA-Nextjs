@@ -5,13 +5,14 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     LocationViewSet, CourseCategoryViewSet, CourseViewSet, ClassScheduleViewSet,
     TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet,
-    BannerViewSet, ServiceCategoryViewSet,
-    TestimonialViewSet, FAQViewSet, BlogPostViewSet, ContactFormViewSet, SliderImageViewSet, LocationViewSet,
-    BlogCategoryViewSet, SiteSettingsView, CourseFinderViewSet)
+    BannerViewSet, ServiceCategoryViewSet, SliderImageViewSet,
+    BlogCategoryViewSet, SiteSettingsView, CourseFinderViewSet, CourseSubcategoryViewSet
+)
 
 router = DefaultRouter()
 router.register(r'locations', LocationViewSet)
-router.register(r'course-categories', CourseCategoryViewSet)
+router.register(r'categories', CourseCategoryViewSet, basename='category')
+router.register(r'subcategories', CourseSubcategoryViewSet, basename='subcategory')
 router.register(r'courses', CourseViewSet)
 router.register(r'class-schedules', ClassScheduleViewSet)
 router.register(r'testimonials', TestimonialViewSet)
@@ -23,7 +24,6 @@ router.register(r'banners', BannerViewSet, basename='banner')
 router.register(r'service-categories', ServiceCategoryViewSet, basename='service-category')
 router.register(r'slider-images', SliderImageViewSet)
 router.register(r'course-finder', CourseFinderViewSet)
-
 
 urlpatterns = [
     path('', include(router.urls)),

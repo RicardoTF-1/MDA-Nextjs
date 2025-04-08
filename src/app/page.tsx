@@ -16,13 +16,11 @@ export default function Home() {
   return (
     <>
       <HeroSlider/>
-      <CourseFinder/>
-      <UpcomingClasses />
-      <Hero />
-      <StatsSection/>
-      <BannerSlider/>
       <CategorySection/>
+      <BannerSlider/>
+      <CourseFinder/>
       <CourseHighlights />
+      <UpcomingClasses />
       <LocationFinder />
       <Testimonials />
       <LocationMap />

@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import requests
 from django.conf import settings
-
+from django.utils.text import slugify
 # backend/api/models.py (update your existing Location model)
 
 class Location(models.Model):
@@ -15,33 +15,30 @@ class Location(models.Model):
     zip_code = models.CharField(max_length=20)
     phone = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
-    # Add these new fields
     image = models.ImageField(upload_to='locations/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
-    #Thi is for the google maps component
     order = models.PositiveSmallIntegerField(default=0)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    # backend/api/models.py - add this to your Location model
-
-def geocode_address(self):
-    """Geocode the address to get latitude and longitude"""
-    if not self.latitude or not self.longitude:
-        try:
-            address = f"{self.address}, {self.city}, {self.state} {self.zip_code}"
-            params = {
-                'address': address,
-                'key': settings.GOOGLE_MAPS_API_KEY
-            }
-            response = requests.get('https://maps.googleapis.com/maps/api/geocode/json', params=params)
-            data = response.json()
-            
-            if data['status'] == 'OK':
-                location = data['results'][0]['geometry']['location']
-                self.latitude = location['lat']
-                self.longitude = location['lng']
-        except Exception as e:
-            print(f"Geocoding error: {e}")
+    
+    def geocode_address(self):
+        """Geocode the address to get latitude and longitude"""
+        if not self.latitude or not self.longitude:
+            try:
+                address = f"{self.address}, {self.city}, {self.state} {self.zip_code}"
+                params = {
+                    'address': address,
+                    'key': settings.GOOGLE_MAPS_API_KEY
+                }
+                response = requests.get('https://maps.googleapis.com/maps/api/geocode/json', params=params)
+                data = response.json()
+                
+                if data['status'] == 'OK':
+                    location = data['results'][0]['geometry']['location']
+                    self.latitude = location['lat']
+                    self.longitude = location['lng']
+            except Exception as e:
+                print(f"Geocoding error: {e}")
 
     def save(self, *args, **kwargs):
         self.geocode_address()
@@ -52,8 +49,6 @@ def geocode_address(self):
     
     class Meta:
         ordering = ['order', 'name']
-
-
 # Modelo para el componente de poner horarios en el homepage
 
 class ClassSchedule(models.Model):
@@ -71,48 +66,90 @@ class ClassSchedule(models.Model):
     class Meta:
         ordering = ['date', 'time']
 
-
-
 class CourseCategory(models.Model):
+    """Main course categories like 'In Car Services', 'Teen Programs', etc."""
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
+    icon_svg = models.TextField(help_text="SVG code for the icon", null=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
     
     def __str__(self):
         return self.name
     
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
     class Meta:
         verbose_name_plural = "Course Categories"
+        ordering = ['order', 'name']
 
-class Course(models.Model):
-    # Existing fields
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
-    category = models.ForeignKey(CourseCategory, on_delete=models.CASCADE, related_name='courses')
-    description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    duration = models.CharField(max_length=100)  # e.g., "8 weeks", "3 months"
-    is_featured = models.BooleanField(default=False)
-    image = models.ImageField(upload_to='courses/', blank=True, null=True)
-    
-    # New fields for course finder
-    AGE_RANGES = (
-        ('teen', 'Teen (15-18)'),
-        ('adult', 'Adult (19+)'),
-        ('international', 'International Driver'),
-        ('all', 'All Ages')
-    )
-    age_range = models.CharField(max_length=20, choices=AGE_RANGES, default='all')
-    experience_level = models.ManyToManyField('CourseFinderOption', blank=True, related_name='suited_courses')
-    available_locations = models.ManyToManyField('Location', blank=True, related_name='available_courses')
-    bullet_points = models.TextField(blank=True, null=True, help_text="Course highlights/features (one per line)")
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class CourseSubcategory(models.Model):
+    """Optional subcategories for courses like 'Road Test Prep', 'Behind the Wheel' for 'In Car Services'"""
+    category = models.ForeignKey(CourseCategory, on_delete=models.CASCADE, related_name='subcategories')
+    name = models.CharField(max_length=100)
+    slug = models.SlugField()
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='subcategories/', blank=True, null=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    is_highlighted = models.BooleanField(default=False)
     
     def __str__(self):
-        return self.title
+        return f"{self.category.name} - {self.name}"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name_plural = "Course Subcategories"
+        ordering = ['category', 'order', 'name']
+        unique_together = ['category', 'slug']
+
+class Course(models.Model):
+    """Individual course offerings like '2 Hours Behind-the-wheel + Road Test'"""
+    HEADER_COLOR_CHOICES = [
+        ('dark', 'Dark (Default)'),
+        ('warning', 'Warning (Gold/Featured)'),
+        ('primary', 'Primary (Blue)'),
+        ('success', 'Success (Green)'),
+        ('danger', 'Danger (Red)'),
+        ('info', 'Info (Light Blue)'),
+    ]
+    
+    category = models.ForeignKey(CourseCategory, on_delete=models.CASCADE, related_name='direct_courses')
+    subcategory = models.ForeignKey(CourseSubcategory, on_delete=models.SET_NULL, 
+                                   related_name='courses', null=True, blank=True)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField()
+    subtitle = models.CharField(max_length=200, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    bullet_points = models.TextField(help_text="One bullet point per line", null=True)
+    header_color = models.CharField(max_length=20, choices=HEADER_COLOR_CHOICES, default='dark')
+    is_featured = models.BooleanField(default=False)
+    has_free_pickup = models.BooleanField(default=False)
+    order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    def __str__(self):
+        if self.subcategory:
+            return f"{self.subcategory.name} - {self.title}"
+        return f"{self.category.name} - {self.title}"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['category', 'subcategory', 'order', 'title']
+        unique_together = [['category', 'slug'], ['subcategory', 'slug']]
 
 
 
@@ -227,7 +264,26 @@ class ServiceCategory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['order', 'title']
+        verbose_name_plural = "Service Categories"
+        
 
+# For locations used in dropdown menus
+class CourseLocation(models.Model):
+    """Mapping of courses to locations where they are offered"""
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='locations', null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='courses')
+    is_available = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.course.title} at {self.location.name}"
+    
+    class Meta:
+        unique_together = ['course', 'location']
 
 # backend/api/models.py (add this to your existing models)
 
