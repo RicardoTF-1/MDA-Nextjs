@@ -140,7 +140,7 @@ export default function CoursesPage(): JSX.Element {
   return (
     <div className="bg-gray-50 py-16">
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center mb-12">Our Courses</h1>
+        <h1 className="text-4xl text-gray-700 font-bold text-center mb-12">Our Courses</h1>
         
         {categories.length === 0 ? (
           <p className="text-center text-gray-600">No course categories available at the moment.</p>
