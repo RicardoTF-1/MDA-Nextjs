@@ -1,46 +1,265 @@
-// src/app/knowledge-hub/page.js
-import { Suspense } from 'react';
-import { fetchFeaturedBlogPosts, fetchRecentBlogPosts, fetchBlogCategories } from '/lib/api';
-import KnowledgeHubHero from '/components/knowledge-hub/KnowledgeHubHero';
-import FeaturedArticles from '/components/knowledge-hub/FeaturedArticles';
-import RecentArticles from '/components/knowledge-hub/RecentArticles';
-import CategoryTabs from '/components/knowledge-hub/CategoryTabs';
-import LoadingArticles from '/components/knowledge-hub/LoadingArticles';
+'use client';
 
-export const metadata = {
-  title: 'Knowledge Hub | My Drive Academy',
-  description: 'Resources, guides, and tips for new and experienced drivers. Learn about road safety, traffic rules, and more.',
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+// Category chip component
+const CategoryChip = ({ name, isActive, onClick }) => {
+  return (
+    <button
+      onClick={() => onClick(name)}
+      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 mr-2 mb-2 ${
+        isActive 
+          ? 'bg-emerald-600 text-white' 
+          : 'bg-gray-200 text-gray-800 hover:bg-gray-200'
+      }`}
+    >
+      {name}
+    </button>
+  );
 };
 
-export default async function KnowledgeHubPage() {
-  // Fetch data in parallel
-  const [featuredPosts, recentPosts, categories] = await Promise.all([
-    fetchFeaturedBlogPosts(),
-    fetchRecentBlogPosts(),
-    fetchBlogCategories(),
-  ]);
+// Featured post component
+const FeaturedPost = ({ post }) => {
+  if (!post) return null;
+  
+  return (
+    <div className="relative bg-blue-800 rounded-xl overflow-hidden mb-12">
+      <div className="absolute inset-0 opacity-80">
+        <img
+          src={post.featured_image_url || '/images/placeholder-article.jpg'}
+          alt={post.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="relative z-10 p-8 md:p-12 lg:p-16 flex flex-col items-start">
+        <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-4">
+          {post.category_name || 'Featured'}
+        </span>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-3xl">
+          {post.title}
+        </h1>
+        <p className="text-white/80 text-lg mb-6 max-w-2xl">
+          {post.excerpt || ''}
+        </p>
+        <div className="flex items-center mb-6">
+          <div>
+            <div className="text-white font-medium">{post.author_name || 'My Drive Academy'}</div>
+            <div className="text-white/70 text-sm">
+              {post.published_date ? new Date(post.published_date).toLocaleDateString() : ''}
+            </div>
+          </div>
+        </div>
+        <Link 
+          href={`/knowledge-hub/blog/${post.slug}`}
+          className="bg-emerald-600 text-gray-100 hover:bg-emerald-800 hover:text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300"
+        >
+          Read Article
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+// Blog post card component
+const BlogPostCard = ({ post }) => {
+  return (
+    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+      <div className="relative h-52 overflow-hidden">
+        <img 
+          src={post.featured_image_url || '/images/placeholder-article.jpg'} 
+          alt={post.title}
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+        />
+        {post.category_name && (
+          <span className="absolute top-4 right-4 bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded">
+            {post.category_name}
+          </span>
+        )}
+      </div>
+      
+      <div className="p-5 flex-grow flex flex-col">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt || ''}</p>
+        
+        <div className="mt-auto flex items-center justify-between">
+          <div className="flex items-center">
+            <span className="text-xs text-gray-700">{post.author_name || 'My Drive Academy'}</span>
+          </div>
+          <span className="text-xs text-gray-500">
+            {post.published_date ? new Date(post.published_date).toLocaleDateString() : ''}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Newsletter subscription component
+const NewsletterSubscribe = () => {
+  return (
+    <div className="bg-gray-800 rounded-lg p-8 mt-12">
+      <h3 className="text-2xl font-bold text-white mb-2">Stay Updated</h3>
+      <p className="text-gray-300 mb-6">Get the latest driving tips and resources delivered to your inbox.</p>
+      
+      <form className="flex flex-col sm:flex-row gap-3">
+        <input 
+          type="email" 
+          placeholder="Your email address" 
+          className="flex-grow px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
+        />
+        <button 
+          type="submit" 
+          className="bg-emerald-600 hover:bg-emerald-800 text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300"
+        >
+          Subscribe
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// Main blog page component
+export default function BlogListPage() {
+  const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch posts and categories
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch categories
+        const categoriesResponse = await axios.get(`${API_URL}/blog-categories/`);
+        const categoriesData = categoriesResponse.data;
+        setCategories([{ id: 0, name: 'All', slug: 'all' }, ...categoriesData]);
+        
+        // Fetch posts
+        const postsResponse = await axios.get(`${API_URL}/blog-posts/`);
+        const postsData = postsResponse.data;
+        setPosts(postsData);
+        
+        // Default to showing all posts
+        setFilteredPosts(postsData);
+      } catch (err) {
+        console.error('Error fetching blog data:', err);
+        setError('Failed to load blog content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  // Filter posts by category
+  useEffect(() => {
+    if (selectedCategory === 'All') {
+      setFilteredPosts(posts);
+    } else {
+      const filtered = posts.filter(post => post.category_name === selectedCategory);
+      setFilteredPosts(filtered);
+    }
+  }, [selectedCategory, posts]);
+
+  // Get featured post (first post or first featured post)
+  const featuredPost = posts.find(post => post.is_featured) || posts[0];
+  
+  // Remove featured post from filtered posts for All category
+  const displayPosts = selectedCategory === 'All' && featuredPost
+    ? filteredPosts.filter(post => post.id !== featuredPost.id)
+    : filteredPosts;
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen pb-16 pt-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-80 bg-gray-200 rounded-xl mb-12 animate-pulse"></div>
+          <div className="h-8 bg-gray-200 w-64 rounded mb-4 animate-pulse"></div>
+          <div className="flex flex-wrap gap-2 mb-8">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-80 bg-gray-200 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-gray-50 min-h-screen pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-8 rounded-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Error</h2>
+            <p>{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
-      <KnowledgeHubHero />
+    <div className="bg-gray-50 min-h-screen pb-16">
+      {/* Hero section with featured post */}
+      <div className="bg-gray-50 pt-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {featuredPost && <FeaturedPost post={featuredPost} />}
+        </div>
+      </div>
       
-      {/* Featured Articles */}
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="text-3xl font-bold mb-8 text-center">Popular Driver's Education Articles</h2>
-        <Suspense fallback={<LoadingArticles count={3} />}>
-          <FeaturedArticles articles={featuredPosts.slice(0, 3)} />
-        </Suspense>
-      </section>
-      
-      {/* Recent Articles with Category Tabs */}
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="text-3xl font-bold mb-6">Recent Articles</h2>
-        <Suspense fallback={<LoadingArticles count={6} />}>
-          <CategoryTabs categories={categories} />
-          <RecentArticles articles={recentPosts} />
-        </Suspense>
-      </section>
+      {/* Main content area */}
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Category filters */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Categories</h2>
+          <div className="flex flex-wrap">
+            {categories.map(category => (
+              <CategoryChip 
+                key={category.id} 
+                name={category.name} 
+                isActive={selectedCategory === category.name}
+                onClick={setSelectedCategory}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Blog posts grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayPosts.map(post => (
+            <Link href={`/knowledge-hub/blog/${post.slug}`} key={post.id}>
+              <BlogPostCard post={post} />
+            </Link>
+          ))}
+        </div>
+        
+        {/* Empty state */}
+        {displayPosts.length === 0 && (
+          <div className="text-center py-16">
+            <h3 className="text-xl font-medium text-gray-800 mb-2">No posts found</h3>
+            <p className="text-gray-600">Try selecting a different category</p>
+          </div>
+        )}
+        
+        {/* Newsletter subscription */}
+        <NewsletterSubscribe />
+      </div>
     </div>
   );
 }

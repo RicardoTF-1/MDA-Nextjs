@@ -3,16 +3,20 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { fetchSiteSettings } from '../../lib/api'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const [siteSettings, setSiteSettings] = useState({
     site_name: 'My Drive Academy',
     logo_url: null
   })
   const [loading, setLoading] = useState(true)
+  const pathname = usePathname()
   
+  // Efecto para cargar configuraciones del sitio
   useEffect(() => {
     const loadSiteSettings = async () => {
       try {
@@ -27,10 +31,45 @@ export default function Header() {
     
     loadSiteSettings()
   }, [])
+
+  // Efecto separado para manejar el scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Determinar si estamos en la página principal
+  const isHomePage = pathname === '/'
+  
+  // Determinar si estamos en la página de knowledge-hub
+  const isKnowledgeHub = pathname === '/knowledge-hub'
+  
+  // Clases dinámicas del header
+  const headerClass = `${isHomePage ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 transition-all ${
+    isScrolled || isKnowledgeHub ? 'bg-black/30 backdrop-blur-s' : 'bg-transparent'
+  }`
+  
+  // Aplicar un estilo global para ajustar el margen superior solo en la página principal
+  useEffect(() => {
+    // Solo afecta a elementos dentro del layout principal, no al header
+    if (isHomePage) {
+      document.body.style.paddingTop = '0px';
+    } else {
+      document.body.style.paddingTop = '0px'; // Restablece el padding en otras páginas
+    }
+    
+    return () => {
+      document.body.style.paddingTop = '0px'; // Limpia al desmontar
+    }
+  }, [isHomePage]);
   
   return (
-    <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
-      <div className="container mx-auto px-4 py-4">
+    <header className={headerClass}>
+      <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center">
             {siteSettings.logo_url ? (
@@ -43,7 +82,7 @@ export default function Header() {
               </div>
             ) : (
               <span className="text-white text-2xl font-bold flex items-center">
-                <svg className="w-8 h-8 mr-2 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 mr-2 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z" />
                 </svg>
                 {siteSettings.site_name}
@@ -53,16 +92,16 @@ export default function Header() {
           
           <div className="hidden md:flex items-center space-x-4">
             <nav className="flex space-x-6">
-              <Link href="/" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
                 COURSES
               </Link>
-              <Link href="/locations" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
                 LOCATIONS
               </Link>
-              <Link href="/knowledge-hub" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition">
                 KNOWLEDGE HUB
               </Link>
-              <Link href="/about" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition">
                 ABOUT
               </Link>
             </nav>
@@ -74,7 +113,7 @@ export default function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                 </svg>
               </button>
-              <Link href="/contact" className="px-6 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition">
+              <Link href="/contact" className="px-6 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-800 transition">
                 Contact Us
               </Link>
             </div>
@@ -99,21 +138,21 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/courses" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
                 COURSES
               </Link>
-              <Link href="/locations" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
                 LOCATIONS
               </Link>
-              <Link href="/knowledge-hub" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition">
                 KNOWLEDGE HUB
               </Link>
-              <Link href="/about" className="py-2 text-white hover:text-green-400 transition">
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition">
                 ABOUT
               </Link>
             </nav>
             <div className="flex flex-col space-y-2 mt-4">
-              <Link href="/contact" className="px-4 py-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition text-center">
+              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center">
                 Contact Us
               </Link>
             </div>

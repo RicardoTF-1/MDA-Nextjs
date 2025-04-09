@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
-const SubcategorySection = ({ subcategory }) => {
+const SubcategorySection = ({ subcategory, categorySlug }) => {
   if (!subcategory) {
     return <div className="text-center py-8">No subcategory data available</div>;
   }
@@ -17,7 +17,7 @@ const SubcategorySection = ({ subcategory }) => {
           {subcategory.image_url ? (
             <Image
               src={subcategory.image_url}
-              alt={subcategory.title}
+              alt={subcategory.name}
               width={500}
               height={350}
               className="rounded-xl w-full h-auto object-cover"
@@ -41,11 +41,23 @@ const SubcategorySection = ({ subcategory }) => {
           subcategory.courses.map((course) => (
             <div key={course.id} className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
               {/* Card Header */}
-              <div className={`bg-${course.header_color === 'warning' ? 'yellow-500' : course.header_color === 'primary' ? 'blue-700' : 'gray-800'} p-4 relative ${course.header_color === 'warning' ? 'text-gray-800' : 'text-white'}`}>
+              <div className={`${
+                course.header_color === 'warning' 
+                  ? 'bg-yellow-500 text-gray-800' 
+                  : course.header_color === 'primary' 
+                    ? 'bg-blue-600 text-white'
+                    : course.header_color === 'success'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-800 text-white'
+              } p-4 relative`}>
                 <h3 className="font-bold text-lg">{course.title}</h3>
                 {course.subtitle && <p className="text-sm">{course.subtitle}</p>}
                 {course.has_free_pickup && (
-                  <p className="text-green-300 text-sm font-medium">Free Pickup</p>
+                  <p className="text-sm font-medium mt-1">
+                    {course.header_color === 'warning' 
+                      ? <span className="text-green-800">Free Pickup</span> 
+                      : <span className="text-green-300">Free Pickup</span>}
+                  </p>
                 )}
                 {course.is_featured && (
                   <div className="absolute top-2 right-2 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-gray-800">
@@ -72,7 +84,12 @@ const SubcategorySection = ({ subcategory }) => {
               
               {/* Card Footer */}
               <div className="p-4 bg-gray-50 text-center">
-                <LocationDropdown locations={course.locations} />
+                <Link 
+                  href={`/courses/${categorySlug}/${course.slug}`}
+                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-full transition-colors"
+                >
+                  View Details
+                </Link>
               </div>
             </div>
           ))
@@ -84,55 +101,12 @@ const SubcategorySection = ({ subcategory }) => {
       </div>
       
       {/* Requirements Note */}
-      <div className="mt-8 text-center text-gray-600 max-w-3xl mx-auto border-t pt-6">
-        <p>
-          Students enrolling in any of these packages must have a learner's permit and submit proof that they have 
-          successfully completed a Driver's Education class, either in high school or at a private driving school.
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// Location Dropdown Component
-const LocationDropdown = ({ locations }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  if (!locations || locations.length === 0) {
-    return (
-      <button className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-full">
-        Contact Us
-      </button>
-    );
-  }
-
-  return (
-    <div className="relative inline-block">
-      <button 
-        onClick={() => setIsOpen(!isOpen)} 
-        className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-full flex items-center"
-      >
-        Choose A Location
-        <svg className={`w-4 h-4 ml-2 transform ${isOpen ? 'rotate-180' : ''} transition-transform`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-      </button>
-      
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-2 bg-white border rounded-md shadow-lg">
-          <ul className="py-1">
-            {locations.map(location => (
-              <li key={location.id}>
-                <Link 
-                  href={`/locations/${location.location_id}`}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {location.location_name}, {location.location_city}
-                </Link>
-              </li>
-            ))}
-          </ul>
+      {subcategory.courses && subcategory.courses.length > 0 && (
+        <div className="mt-8 text-center text-gray-600 max-w-3xl mx-auto border-t pt-6">
+          <p>
+            Students enrolling in any of these packages must have a learner's permit and submit proof that they have 
+            successfully completed a Driver's Education class, either in high school or at a private driving school.
+          </p>
         </div>
       )}
     </div>

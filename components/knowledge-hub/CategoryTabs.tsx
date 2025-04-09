@@ -33,7 +33,7 @@ export default function CategoryTabs({ categories }) {
           onClick={() => handleCategoryChange('all')}
           className={`px-4 py-2 rounded-md whitespace-nowrap ${
             currentCategory === 'all'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-green-600 text-white'
               : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
           }`}
         >

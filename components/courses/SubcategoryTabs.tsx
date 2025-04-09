@@ -17,7 +17,7 @@ const SubcategoryTabs = ({ subcategories, activeSubcategoryId, onSubcategoryChan
               : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
           }`}
         >
-          {subcategory.title}
+          {subcategory.name}
         </button>
       ))}
     </div>

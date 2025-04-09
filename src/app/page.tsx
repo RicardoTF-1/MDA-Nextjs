@@ -10,6 +10,7 @@ import StatsSection from '../../components/home/StatsSection'
 import CategorySection from '../../components/home/CategorySection'
 import HeroSlider from '../../components/home/HeroSlider'
 import CourseFinder from '../../components/courses/CourseFinder'
+import HomeBlogSection from '../../components/home/HomeBlogSection'
 
 
 export default function Home() {
@@ -19,9 +20,10 @@ export default function Home() {
       <CategorySection/>
       <BannerSlider/>
       <CourseFinder/>
-      <CourseHighlights />
+      {/* <CourseHighlights /> */}
       <UpcomingClasses />
       <LocationFinder />
+      <HomeBlogSection/>
       <Testimonials />
       <LocationMap />
     </>

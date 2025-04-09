@@ -24,10 +24,10 @@ export default function FeaturedArticles({ articles }) {
               className="object-cover"
             />
           </div>
-          <h3 className="text-xl font-bold mb-3">
+          <h3 className="text-xl text-gray-700 font-bold mb-3">
             <Link 
               href={`/knowledge-hub/blog/${article.slug}`}
-              className="hover:text-blue-600 transition-colors"
+              className="hover:text-green-600 transition-colors"
             >
               {article.title}
             </Link>
@@ -39,7 +39,7 @@ export default function FeaturedArticles({ articles }) {
           </div>
           <Link 
             href={`/knowledge-hub/blog/${article.slug}`}
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="text-green-600 hover:text-gray-700 font-medium"
           >
             Read More
           </Link>

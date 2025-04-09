@@ -21,6 +21,10 @@ export default function BlogPostContent({ post }) {
   const createMarkup = (htmlContent) => {
     return { __html: htmlContent };
   };
+
+  // Debug outputs to help troubleshoot
+  console.log("Post data received:", post);
+  console.log("Content type:", typeof post.content);
   
   return (
     <article className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
@@ -42,7 +46,7 @@ export default function BlogPostContent({ post }) {
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <div className="mr-4">
             <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-3 py-1">
-              {post.category_name}
+              {post.category_name || "Uncategorized"}
             </span>
           </div>
           <div>{formattedDate}</div>
@@ -53,11 +57,18 @@ export default function BlogPostContent({ post }) {
           )}
         </div>
         
-        <h1 className="text-3xl md:text-4xl font-bold mb-6">{post.title}</h1>
+        <h1 className="text-3xl text-gray-700 md:text-4xl font-bold mb-6">{post.title}</h1>
         
         {/* Article Content */}
-        <div className="prose prose-lg max-w-none">
-          <div dangerouslySetInnerHTML={createMarkup(post.content)} />
+        <div className="prose prose-lg text-gray-700 max-w-none">
+          {/* Check if content exists and is a string before rendering */}
+          {post.content ? (
+            <div dangerouslySetInnerHTML={createMarkup(post.content)} />
+          ) : (
+            <div className="text-gray-500">
+              <p>Content unavailable. This article may be under construction.</p>
+            </div>
+          )}
         </div>
         
         {/* Tags or Categories */}
@@ -65,10 +76,10 @@ export default function BlogPostContent({ post }) {
           <div className="flex flex-wrap gap-2">
             <span className="text-sm text-gray-600 mr-2">Category:</span>
             <a 
-              href={`/knowledge-hub?category=${post.category_slug}`}
-              className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full"
+              href={`/knowledge-hub?category=${post.category_slug || ""}`}
+              className="text-sm bg-green-200 hover:bg-green-300 text-green-800 px-3 py-1 rounded-full"
             >
-              {post.category_name}
+              {post.category_name || "Uncategorized"}
             </a>
           </div>
         </div>

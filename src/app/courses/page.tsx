@@ -1,116 +1,163 @@
+// app/courses/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { fetchCarLessons } from '/lib/api';
-import LocationFinder from '/components/courses/LocationFinder';
-import CategoryTabs from '/components/courses/CategoryTabs';
-import SubcategoryTabs from '/components/courses/SubcategoryTabs';
-import SubcategorySection from '/components/courses/SubcategorySection';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { fetchCourseCategories } from '/lib/api';
 
-export default function InCarLessonsPage() {
-  const [carLessonsData, setCarLessonsData] = useState(null);
-  const [activeSubcategory, setActiveSubcategory] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+// Define interfaces for our data types
+interface CourseCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  icon_svg: string | null;
+  icon_html: string | null;
+  order: number;
+}
+
+interface CourseCategoryCardProps {
+  title: string;
+  description: string;
+  link: string;
+  iconSvg: string | null;
+}
+
+// CourseCard component with proper typing
+const CourseCard: React.FC<CourseCategoryCardProps> = ({ 
+  title, 
+  description, 
+  link, 
+  iconSvg 
+}) => {
+  return (
+    <Link href={link} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      <div className="p-6">
+        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-green-600">
+          {iconSvg ? (
+            <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
+          ) : (
+            // Fallback icon if no SVG is provided
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+          )}
+        </div>
+        <h3 className="text-xl font-bold mb-2">{title}</h3>
+        <p className="text-gray-600 mb-4">{description}</p>
+        <div className="flex items-center text-green-600 font-medium">
+          <span>Learn more</span>
+          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Loading component to show while fetching data
+const LoadingSkeleton: React.FC = () => {
+  return (
+    <div className="animate-pulse">
+      <div className="bg-gray-200 h-12 w-2/3 mx-auto mb-12 rounded"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden p-6">
+            <div className="w-12 h-12 rounded-full bg-gray-200 mb-4"></div>
+            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded mb-4 w-2/3"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Error component to show if data fetching fails
+const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => {
+  return (
+    <div className="text-center py-10">
+      <div className="text-red-500 text-2xl mb-4">Error Loading Courses</div>
+      <p className="text-gray-600">{message}</p>
+      <button 
+        onClick={() => window.location.reload()} 
+        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+      >
+        Try Again
+      </button>
+    </div>
+  );
+};
+
+// Main component
+export default function CoursesPage(): JSX.Element {
+  const [categories, setCategories] = useState<CourseCategory[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadCarLessons = async () => {
+    const loadCategories = async (): Promise<void> => {
       try {
         setIsLoading(true);
-        const data = await fetchCarLessons();
-        setCarLessonsData(data);
-        
-        // Set the first subcategory as active by default
-        if (data && data.subcategories && data.subcategories.length > 0) {
-          setActiveSubcategory(data.subcategories[0]);
-        }
+        const data = await fetchCourseCategories();
+        setCategories(data);
+        setError(null);
       } catch (err) {
-        console.error('Error loading car lessons:', err);
-        setError('Could not load car lessons data');
+        setError('Failed to load course categories. Please try again later.');
+        console.error('Error fetching categories:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadCarLessons();
+    loadCategories();
   }, []);
 
-  const handleSubcategoryChange = (subcategory) => {
-    setActiveSubcategory(subcategory);
-    
-    // Scroll to content section
-    const contentSection = document.getElementById('subcategory-content');
-    if (contentSection) {
-      contentSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const PageContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-        </div>
-      );
-    }
-
-    if (error || !carLessonsData) {
-      return (
-        <div className="text-center py-16">
-          <div className="text-red-500 mb-4">{error || "No car lessons data available"}</div>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-
+  if (isLoading) {
     return (
-      <>
-        <SubcategoryTabs 
-          subcategories={carLessonsData.subcategories} 
-          activeSubcategoryId={activeSubcategory?.id}
-          onSubcategoryChange={handleSubcategoryChange}
-        />
-
-        <div id="subcategory-content">
-          {activeSubcategory ? (
-            <SubcategorySection subcategory={activeSubcategory} />
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Please select a category to view available courses</p>
-            </div>
-          )}
-        </div>
-      </>
-    );
-  };
-
-  return (
-    <div className="bg-gray-50">
-      {/* Banner/Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-500 py-12">
+      <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">In-Car Lessons</h1>
+          <LoadingSkeleton />
         </div>
       </div>
+    );
+  }
 
-      {/* Location Finder Section */}
-      <LocationFinder />
-
-      {/* Main Tabs Section */}
-      <section className="py-12">
+  if (error) {
+    return (
+      <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
-          {/* Main Category Tabs */}
-          <CategoryTabs activeCategory="in-car-lessons" />
-          
-          {/* Subcategory Content */}
-          <PageContent />
+          <ErrorDisplay message={error} />
         </div>
-      </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 py-16">
+      <div className="container mx-auto px-4">
+        <h1 className="text-4xl font-bold text-center mb-12">Our Courses</h1>
+        
+        {categories.length === 0 ? (
+          <p className="text-center text-gray-600">No course categories available at the moment.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {categories.map((category) => (
+              <CourseCard
+                key={category.id}
+                title={category.name}
+                description={category.description || 'Learn more about this course category.'}
+                link={`/courses/${category.slug}`}
+                iconSvg={category.icon_svg}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -44,10 +44,10 @@ export default function RecentArticles({ articles }) {
               />
             </div>
             <div className="p-4">
-              <h3 className="font-bold text-lg mb-2">
+              <h3 className="font-bold text-gray-700 text-lg mb-2">
                 <Link 
                   href={`/knowledge-hub/blog/${article.slug}`}
-                  className="hover:text-blue-600 transition-colors"
+                  className="hover:text-green-600 transition-colors"
                 >
                   {article.title}
                 </Link>
@@ -61,7 +61,7 @@ export default function RecentArticles({ articles }) {
                 </span>
                 <Link
                   href={`/knowledge-hub/blog/${article.slug}`}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-green-600 hover:text-blue-800"
                 >
                   Read more
                 </Link>
@@ -121,7 +121,7 @@ export default function RecentArticles({ articles }) {
         <div className="text-center mt-8">
           <Link
             href="/knowledge-hub/blog"
-            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition inline-block"
+            className="px-6 py-3 bg-green-600 text-white rounded hover:bg-white hover:text-green-600 transition inline-block"
           >
             Load More
           </Link>

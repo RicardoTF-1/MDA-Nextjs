@@ -8,11 +8,11 @@ export default function Navigation({ mobile }) {
   const pathname = usePathname()
   
   const navItems = [
-    { name: 'Inicio', href: '/' },
-    { name: 'Cursos', href: '/cursos' },
+    { name: 'Home', href: '/' },
+    { name: 'Courses', href: '/courses' },
     { name: 'Knowledge Hub', href: '/knowledge-hub' },
-    { name: 'Ubicaciones', href: '/ubicaciones' },
-    { name: 'Contacto', href: '/contacto' },
+    { name: 'Locations', href: '/locations' },
+    { name: 'Contact', href: '/contact' },
   ]
   
   const containerClass = mobile 

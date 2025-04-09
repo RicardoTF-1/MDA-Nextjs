@@ -27,7 +27,7 @@ export default function CategorySection() {
     loadCategories();
   }, []);
 
-  // Animation effect for cards
+  // Animation effect - simplified to ensure cards are always visible
   useEffect(() => {
     // Only run animation if categories have loaded
     if (categories.length > 0 && !isLoading) {
@@ -67,7 +67,7 @@ export default function CategorySection() {
             <div className="flex flex-col items-center text-center">
               {/* Icon at the top */}
               <div className="text-gray-700 mb-4 w-12 h-12 flex items-center justify-center">
-                <span dangerouslySetInnerHTML={{ __html: category.icon_html }} />
+                <span dangerouslySetInnerHTML={{ __html: category.icon_svg }} />
               </div>
               
               {/* Green separator line */}
