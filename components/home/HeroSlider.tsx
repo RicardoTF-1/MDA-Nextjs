@@ -116,7 +116,7 @@ export default function HeroSlider() {
                   <div className="flex flex-wrap gap-4">
                     <Link
                       href={slide.button_link || "/contact"}
-                      className="px-8 py-3 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition"
+                      className="px-8 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition"
                     >
                       {slide.button_text || "Get in Touch"}
                     </Link>

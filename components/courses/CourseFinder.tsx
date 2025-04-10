@@ -42,7 +42,7 @@ const CourseFinderStep = ({
       return (
         <div className="mt-6">
           <select 
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-300 text-green-600"
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-300 text-emerald-600"
             value={locationValue}
             onChange={handleLocationSelect}
           >
@@ -68,7 +68,7 @@ const CourseFinderStep = ({
               <div 
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                   localSelection === option.id 
-                    ? 'border-green-500 bg-green-500' 
+                    ? 'border-emerald-500 bg-emerald-500' 
                     : 'border-gray-300'
                 }`}
               >
@@ -96,7 +96,7 @@ const CourseFinderStep = ({
         <div className="h-2 bg-gray-200 rounded-full">
           {/* Active progress */}
           <div 
-            className="h-2 bg-green-500 rounded-full transition-all duration-300"
+            className="h-2 bg-emerald-500 rounded-full transition-all duration-300"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           ></div>
         </div>
@@ -146,7 +146,7 @@ const CourseFinderStep = ({
           className={`
             px-8 py-2 rounded-md text-white font-medium flex items-center
             ${localSelection 
-              ? 'bg-green-500 hover:bg-green-600' 
+              ? 'bg-emerald-500 hover:bg-emerald-600' 
               : 'bg-gray-300 cursor-not-allowed'}
           `}
         >
@@ -203,7 +203,7 @@ const CourseResult = ({ recommendation, onStartOver }) => {
       <div className="space-y-4">
         <Link 
           href={`/courses/${course.slug}/register`}
-          className="block w-full py-3 bg-green-500 text-white text-center font-semibold rounded-md hover:bg-green-600 transition"
+          className="block w-full py-3 bg-emerald-500 text-white text-center font-semibold rounded-md hover:bg-emerald-600 transition"
         >
           Register for This Course
         </Link>
@@ -350,7 +350,7 @@ export default function CourseFinder() {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
             <div className="p-8 flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
             </div>
           </div>
         </div>
@@ -394,7 +394,7 @@ export default function CourseFinder() {
     <div className="bg-gray-50 py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <span className="inline-block px-4 py-1 bg-green-100 text-green-600 text-sm font-medium rounded-full mb-4">
+          <span className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 text-sm font-medium rounded-full mb-4">
             Find Your Path
           </span>
           <h2 className="text-3xl text-gray-700 md:text-4xl font-bold mb-4">Find the Perfect Course for You</h2>
@@ -423,7 +423,7 @@ export default function CourseFinder() {
                         <h4 className="font-medium mb-2 text-gray-900">{question.question_text}</h4>
                         {selectedOption ? (
                           <div className="flex items-center">
-                            <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+                            <div className="w-4 h-4 rounded-full bg-emerald-500 mr-2"></div>
                             <p className='text-gray-700'>{selectedOption.option_text}</p>
                           </div>
                         ) : (

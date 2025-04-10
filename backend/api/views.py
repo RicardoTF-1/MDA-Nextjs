@@ -18,46 +18,34 @@ from .serializers import (
     CourseFinderQuestionSerializer, CourseRecommendationSerializer,
     CourseCategoryListSerializer, CourseCategoryDetailSerializer,
     CourseSubcategorySerializer, CourseListSerializer, CourseDetailSerializer,
-    LocationSerializer, CourseLocationSerializer
+    LocationSerializer, CourseLocationSerializer, CourseLocationWithScheduleSerializer
     )
 
 
+# LocationViewSet actualizado para incluir horarios
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.filter(is_active=True).order_by('order')
     serializer_class = LocationSerializer
     permission_classes = [permissions.AllowAny]
     
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
-    
-    @action(detail=False, methods=['get'])
-    def with_schedules(self, request):
-        """Get all active locations with their upcoming schedules"""
-        locations = Location.objects.filter(is_active=True).prefetch_related(
-            Prefetch(
-                'schedules',
-                queryset=ClassSchedule.objects.filter(
-                    date__gte=timezone.now().date()
-                ).order_by('date', 'time')
-            )
-        ).order_by('order', 'name')
-        
-        serializer = LocationWithSchedulesSerializer(locations, many=True, context={'request': request})
-        return Response(serializer.data)
-    
     @action(detail=True, methods=['get'])
-    def courses(self, request, pk=None):
-        """Get courses available at this location"""
+    def with_schedules(self, request, pk=None):
+        """Obtener ubicación con sus horarios de clases"""
         location = self.get_object()
+        
+        # Obtener CourseLocations para esta ubicación que tengan horarios asignados
         course_locations = CourseLocation.objects.filter(
             location=location,
-            is_available=True
-        )
-        courses = [cl.course for cl in course_locations if cl.course.is_active]
+            is_available=True,
+            schedule__isnull=False
+        ).select_related('course', 'location', 'schedule')
         
-        serializer = CourseListSerializer(courses, many=True, context={'request': request})
+        serializer = CourseLocationWithScheduleSerializer(
+            course_locations, 
+            many=True, 
+            context={'request': request}
+        )
+        
         return Response(serializer.data)
 
 class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -122,6 +110,32 @@ class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = CourseListSerializer(courses, many=True, context={'request': request})
         return Response(serializer.data)
+    
+# CourseLocation ViewSet (si no existe, agrégalo)
+class CourseLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CourseLocation.objects.filter(is_available=True)
+    serializer_class = CourseLocationWithScheduleSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Permitir filtrar por location_id
+        location_id = self.request.query_params.get('location_id')
+        if location_id:
+            queryset = queryset.filter(location_id=location_id)
+            
+        # Permitir filtrar por course_id
+        course_id = self.request.query_params.get('course_id')
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+            
+        # Permitir filtrar por with_schedule (solo los que tienen horario asignado)
+        with_schedule = self.request.query_params.get('with_schedule')
+        if with_schedule and with_schedule.lower() == 'true':
+            queryset = queryset.filter(schedule__isnull=False)
+            
+        return queryset.select_related('course', 'location', 'schedule')
     
 class CourseSubcategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CourseSubcategory.objects.filter(is_active=True).order_by('order')

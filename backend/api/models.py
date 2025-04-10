@@ -49,22 +49,7 @@ class Location(models.Model):
     
     class Meta:
         ordering = ['order', 'name']
-# Modelo para el componente de poner horarios en el homepage
 
-class ClassSchedule(models.Model):
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='schedules')
-    date = models.DateField()
-    time = models.TimeField()
-    registration_link = models.CharField(max_length=255, default="/contacto")
-    is_full = models.BooleanField(default=False)
-    
-    def __str__(self):
-        formatted_date = self.date.strftime("%d de %B").lower()
-        formatted_time = self.time.strftime("%H:%M")
-        return f"{self.location.name} - {formatted_date}, {formatted_time}"
-
-    class Meta:
-        ordering = ['date', 'time']
 
 class CourseCategory(models.Model):
     """Main course categories like 'In Car Services', 'Teen Programs', etc."""
@@ -132,10 +117,22 @@ class Course(models.Model):
     bullet_points = models.TextField(help_text="One bullet point per line", null=True)
     header_color = models.CharField(max_length=20, choices=HEADER_COLOR_CHOICES, default='dark')
     is_featured = models.BooleanField(default=False)
-    has_free_pickup = models.BooleanField(default=False)
+    has_free_pickup = models.BooleanField(default=False, 
+                                        help_text="Default free pickup setting (can be overridden per location)")
     order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                              help_text="Default price (can be overridden per location)")
+    
+    # New fields
+    duration = models.CharField(max_length=100, blank=True, null=True,
+                              help_text="Course duration (e.g. '2 hours', '4 weeks')")
+    age_range = models.CharField(max_length=50, blank=True, null=True,
+                               help_text="Target age range (e.g. 'teen', 'adult', 'all')")
+    
+    def get_locations_with_prices(self):
+        """Returns a list of locations with their specific prices for this course"""
+        return self.locations.filter(is_available=True).select_related('location')
     
     def __str__(self):
         if self.subcategory:
@@ -150,7 +147,6 @@ class Course(models.Model):
     class Meta:
         ordering = ['category', 'subcategory', 'order', 'title']
         unique_together = [['category', 'slug'], ['subcategory', 'slug']]
-
 
 
 class Testimonial(models.Model):
@@ -270,20 +266,63 @@ class ServiceCategory(models.Model):
     class Meta:
         ordering = ['order', 'title']
         verbose_name_plural = "Service Categories"
-        
+  
+# ClassSchedule - Solo para definir fechas y horas
+class ClassSchedule(models.Model):
+    date = models.DateField()
+    time = models.TimeField()
+    is_full = models.BooleanField(default=False)
+    spots_left = models.PositiveSmallIntegerField(default=5)
+    
+    def __str__(self):
+        return f"{self.date.strftime('%Y-%m-%d')} - {self.time.strftime('%H:%M')}"
+    
+    class Meta:
+        verbose_name = "Class Schedule"
+        verbose_name_plural = "Class Schedules"
+        unique_together = ['date', 'time']      
 
-# For locations used in dropdown menus
+# CourseLocation - Modificado para incluir referencia a ClassSchedule
 class CourseLocation(models.Model):
-    """Mapping of courses to locations where they are offered"""
+    """Mapping of courses to locations where they are offered, with location-specific pricing"""
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='locations', null=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='courses')
     is_available = models.BooleanField(default=True)
     
+    # Referencia a ClassSchedule
+    schedule = models.ForeignKey(ClassSchedule, on_delete=models.SET_NULL, 
+                               null=True, blank=True, related_name='course_locations',
+                               help_text="Schedule associated with this course at this location")
+    
+    # Campo de registration_link
+    registration_link = models.CharField(max_length=255, default="/contact",
+                                       help_text="Link for course registration at this location")
+    
+    # Fields for location-specific pricing and details
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                              help_text="Location-specific price (overrides course price if set)")
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                         help_text="Location-specific discounted price")
+    has_free_pickup = models.BooleanField(default=False,
+                                        help_text="Whether this location offers free pickup for this course")
+    instructor_note = models.TextField(blank=True, null=True,
+                                     help_text="Location-specific notes about instructors")
+    availability_note = models.TextField(blank=True, null=True,
+                                       help_text="Notes about availability at this location")
+    
+    def get_price(self):
+        """Returns location-specific price if available, otherwise falls back to course price"""
+        if self.price is not None:
+            return self.price
+        return self.course.price if self.course else None
+    
     def __str__(self):
-        return f"{self.course.title} at {self.location.name}"
+        schedule_info = f" at {self.schedule}" if self.schedule else ""
+        price_info = f" (${self.price})" if self.price else ""
+        return f"{self.course.title if self.course else 'Unknown Course'} at {self.location.name}{schedule_info}{price_info}"
     
     class Meta:
-        unique_together = ['course', 'location']
+        unique_together = ['course', 'location', 'schedule']  # Asegura que no haya duplicados
 
 # backend/api/models.py (add this to your existing models)
 

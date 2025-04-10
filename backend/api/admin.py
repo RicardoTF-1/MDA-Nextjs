@@ -20,15 +20,21 @@ class LocationAdmin(admin.ModelAdmin):
 
 # Class Schedule Admin
 class ClassScheduleInline(admin.TabularInline):
-    model = ClassSchedule
+    model = CourseLocation
     extra = 1
+    fields = ('course', 'location', 'registration_link', 'is_available')
 
 @admin.register(ClassSchedule)
 class ClassScheduleAdmin(admin.ModelAdmin):
-    list_display = ('location', 'date', 'time', 'is_full')
-    list_filter = ('location', 'date', 'is_full')
-    date_hierarchy = 'date'
-
+    list_display = ('date', 'time', 'is_full', 'spots_left', 'get_courses_count')
+    list_filter = ('is_full', 'date')
+    search_fields = ('date', 'time')
+    inlines = [ClassScheduleInline]
+    
+    def get_courses_count(self, obj):
+        return obj.course_locations.count()
+    get_courses_count.short_description = "Courses"
+    
 # Course Category Admin
 class CourseSubcategoryInline(admin.TabularInline):
     model = CourseSubcategory
@@ -83,6 +89,23 @@ class CourseAdmin(admin.ModelAdmin):
             'fields': ('header_color', 'is_featured', 'has_free_pickup', 'order', 'is_active')
         }),
     )
+    
+# CourseLocation Admin
+@admin.register(CourseLocation)
+class CourseLocationAdmin(admin.ModelAdmin):
+    list_display = ('course', 'location', 'schedule', 'is_available', 'price')
+    list_filter = ('is_available', 'location', 'course')
+    search_fields = ('course__title', 'location__name')
+    raw_id_fields = ('schedule',)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "course":
+            # Filtrar solo los cursos activos
+            kwargs["queryset"] = Course.objects.filter(is_active=True)
+        if db_field.name == "location":
+            # Filtrar solo las ubicaciones activas
+            kwargs["queryset"] = Location.objects.filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 # Testimonial Admin
 @admin.register(Testimonial)

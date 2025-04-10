@@ -24,7 +24,7 @@ const BlogCard = ({ post, index, isVisible }) => {
               className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
             />
             {post.category_name && (
-              <span className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+              <span className="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded">
                 {post.category_name}
               </span>
             )}

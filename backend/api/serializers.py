@@ -35,13 +35,46 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
 
+# Serializer para ClassSchedule
 class ClassScheduleSerializer(serializers.ModelSerializer):
-    course_title = serializers.ReadOnlyField(source='course.title')
-    location_name = serializers.ReadOnlyField(source='location.name')
-    
     class Meta:
         model = ClassSchedule
-        fields = '__all__'
+        fields = ['id', 'date', 'time', 'is_full', 'spots_left']
+        
+# Serializer para CourseLocation que incluya datos del horario
+class CourseLocationWithScheduleSerializer(serializers.ModelSerializer):
+    course_title = serializers.ReadOnlyField(source='course.title')
+    location_name = serializers.ReadOnlyField(source='location.name')
+    schedule_date = serializers.SerializerMethodField()
+    schedule_time = serializers.SerializerMethodField()
+    schedule_is_full = serializers.SerializerMethodField()
+    schedule_spots_left = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CourseLocation
+        fields = ['id', 'course_title', 'location_name', 'schedule_date', 'schedule_time', 
+                  'schedule_is_full', 'schedule_spots_left', 'is_available', 'price',
+                  'registration_link']
+    
+    def get_schedule_date(self, obj):
+        if obj.schedule:
+            return obj.schedule.date
+        return None
+    
+    def get_schedule_time(self, obj):
+        if obj.schedule:
+            return obj.schedule.time
+        return None
+    
+    def get_schedule_is_full(self, obj):
+        if obj.schedule:
+            return obj.schedule.is_full
+        return False
+    
+    def get_schedule_spots_left(self, obj):
+        if obj.schedule:
+            return obj.schedule.spots_left
+        return 0
 
 class TestimonialSerializer(serializers.ModelSerializer):
     class Meta:
@@ -138,11 +171,22 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'subtitle', 'icon_svg', 'link', 'order']
         
 class CourseLocationSerializer(serializers.ModelSerializer):
-    location_details = LocationSerializer(source='location', read_only=True)
+    location_details = serializers.SerializerMethodField()
+    actual_price = serializers.SerializerMethodField()
     
     class Meta:
         model = CourseLocation
-        fields = ['id', 'location', 'location_details', 'is_available']
+        fields = ['id', 'location', 'location_details', 'is_available', 
+                  'price', 'discounted_price', 'has_free_pickup', 
+                  'instructor_note', 'availability_note', 'actual_price']
+    
+    def get_location_details(self, obj):
+        # Use the LocationSerializer to get full location details
+        return LocationSerializer(obj.location, context=self.context).data
+    
+    def get_actual_price(self, obj):
+        # Return the effective price (location-specific or course default)
+        return obj.get_price()
         
 class CourseListSerializer(serializers.ModelSerializer):
     bullet_point_list = serializers.SerializerMethodField()
@@ -150,8 +194,8 @@ class CourseListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ['id', 'title', 'slug', 'subtitle', 'description', 
-                 'bullet_point_list', 'header_color', 'is_featured', 
-                 'has_free_pickup', 'price']
+                  'bullet_point_list', 'header_color', 'is_featured', 
+                  'has_free_pickup', 'price', 'duration', 'age_range']
     
     def get_bullet_point_list(self, obj):
         if obj.bullet_points:
@@ -168,7 +212,6 @@ class CourseDetailSerializer(CourseListSerializer):
         fields = CourseListSerializer.Meta.fields + [
             'locations', 'category_name', 'subcategory_name'
         ]
-
 class CourseSubcategorySerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     courses = CourseListSerializer(many=True, read_only=True)
@@ -225,25 +268,6 @@ class SliderImageSerializer(serializers.ModelSerializer):
             return obj.image.url
         return None
 
-
-
-# Modelo para los horarios y location del home componente
-
-class ClassScheduleSerializer(serializers.ModelSerializer):
-    formatted_date = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = ClassSchedule
-        fields = ['id', 'date', 'time', 'formatted_date', 'registration_link', 'is_full']
-        
-    def get_formatted_date(self, obj):
-        # Convert date to Spanish format like "24 DE MARZO"
-        months = {
-            1: 'ENERO', 2: 'FEBRERO', 3: 'MARZO', 4: 'ABRIL', 5: 'MAYO', 
-            6: 'JUNIO', 7: 'JULIO', 8: 'AGOSTO', 9: 'SEPTIEMBRE', 
-            10: 'OCTUBRE', 11: 'NOVIEMBRE', 12: 'DICIEMBRE'
-        }
-        return f"{obj.date.day} DE {months[obj.date.month]}, {obj.time.strftime('%H:%M')}"
 
 # Add this to your existing LocationSerializer or create a new one
 class LocationWithSchedulesSerializer(serializers.ModelSerializer):
@@ -316,31 +340,32 @@ class CourseFinderQuestionSerializer(serializers.ModelSerializer):
         model = CourseFinderQuestion
         fields = ['id', 'question_type', 'question_text', 'order', 'options']
 
-class CourseDetailSerializer(serializers.ModelSerializer):
-    bullet_point_list = serializers.SerializerMethodField()
-    category_name = serializers.ReadOnlyField(source='category.name')
-    locations = serializers.SerializerMethodField()
+# class CourseDetailSerializer(serializers.ModelSerializer):
+#     bullet_point_list = serializers.SerializerMethodField()
+#     category_name = serializers.ReadOnlyField(source='category.name')
+#     locations = serializers.SerializerMethodField()
+#     subcategory_name = serializers.ReadOnlyField(source='subcategory.name')
     
-    class Meta:
-        model = Course
-        fields = [
-            'id', 'title', 'slug', 'description', 'price', 'discounted_price', 
-            'duration', 'is_featured', 'image', 'bullet_point_list', 
-            'category_name', 'locations', 'age_range'
-        ]
+#     class Meta:
+#         model = Course
+#         fields = CourseListSerializer.Meta.fields + [
+#             'locations', 'category_name', 'subcategory_name',
+#             'bullet_point_list'
+#         ]
     
-    def get_bullet_point_list(self, obj):
-        if obj.bullet_points:
-            return [point.strip() for point in obj.bullet_points.split('\n') if point.strip()]
-        # Extract bullet points from description if not explicitly provided
-        return [point.strip() for point in obj.description.split('\n') if point.strip()]
+#     def get_bullet_point_list(self, obj):
+#         if obj.bullet_points:
+#             return [point.strip() for point in obj.bullet_points.split('\n') if point.strip()]
+#         # Extract bullet points from description if not explicitly provided
+#         return [point.strip() for point in obj.description.split('\n') if point.strip()]
     
-    def get_locations(self, obj):
-        return [
-            f"{location.name}, {location.city}" 
-            for location in obj.available_locations.filter(is_active=True)
-        ]
+#     def get_locations(self, obj):
+#         return [
+#             f"{location.name}, {location.city}" 
+#             for location in obj.available_locations.filter(is_active=True)
+#         ]
 
+# Modify the CourseRecommendationSerializer to match updated CourseDetailSerializer
 class CourseRecommendationSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()

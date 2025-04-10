@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { fetchLocations } from '/lib/api';
+import { fetchLocations } from '@/lib/api';
 
 export default function LocationFinder() {
   const [locations, setLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
   useEffect(() => {
     const loadLocations = async () => {
       try {
@@ -23,10 +23,10 @@ export default function LocationFinder() {
         setIsLoading(false);
       }
     };
-
+    
     loadLocations();
   }, []);
-
+  
   return (
     <section className="py-12 bg-emerald-50">
       <div className="container mx-auto px-4">
@@ -34,7 +34,7 @@ export default function LocationFinder() {
         
         {isLoading ? (
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
           </div>
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
@@ -51,7 +51,9 @@ export default function LocationFinder() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="bg-gray-200 w-full h-full"></div>
+                    <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+                      <span className="text-gray-500">{location.name}</span>
+                    </div>
                   )}
                   <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                     <h3 className="text-white text-xl font-bold text-center">
@@ -61,9 +63,9 @@ export default function LocationFinder() {
                   </div>
                 </div>
                 <div className="p-4 text-center">
-                  <Link 
+                  <Link
                     href={`/locations/${location.id}`}
-                    className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
+                    className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
                   >
                     Go To Location
                   </Link>

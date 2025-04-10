@@ -57,21 +57,21 @@ export default function CategorySection() {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 m-15">
         {categories.map((category) => (
           <Link
             key={category.id}
             href={`/courses/${category.slug}`}
             className="service-card block opacity-0 transform translate-y-8 transition-all duration-700 ease-out hover:shadow-lg hover:-translate-y-1 p-6 rounded-lg group bg-white"
           >
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col">
               {/* Icon at the top */}
               <div className="text-gray-700 mb-4 w-12 h-12 flex items-center justify-center">
                 <span dangerouslySetInnerHTML={{ __html: category.icon_svg }} />
               </div>
               
               {/* Green separator line */}
-              <div className="w-16 h-1 bg-green-500 mb-4 transition-all duration-300 group-hover:w-20"></div>
+              <div className="w-16 h-1 bg-emerald-500 mb-4 transition-all duration-300 group-hover:w-20"></div>
               
               {/* Title */}
               <h3 className="text-gray-800 font-bold text-lg mb-2">{category.name}</h3>

@@ -25,7 +25,7 @@ export default function Home() {
       <LocationFinder />
       <HomeBlogSection/>
       <Testimonials />
-      <LocationMap />
+      {/* <LocationMap /> */}
     </>
   )
 }

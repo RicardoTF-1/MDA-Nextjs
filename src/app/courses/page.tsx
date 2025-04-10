@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fetchCourseCategories } from '/lib/api';
+import { fetchCourseCategories } from '@/lib/api';
 
 // Define interfaces for our data types
 interface CourseCategory {
@@ -33,7 +33,7 @@ const CourseCard: React.FC<CourseCategoryCardProps> = ({
   return (
     <Link href={link} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="p-6">
-        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-green-600">
+        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-emerald-600">
           {iconSvg ? (
             <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
           ) : (
@@ -45,7 +45,7 @@ const CourseCard: React.FC<CourseCategoryCardProps> = ({
         </div>
         <h3 className="text-xl font-bold mb-2">{title}</h3>
         <p className="text-gray-600 mb-4">{description}</p>
-        <div className="flex items-center text-green-600 font-medium">
+        <div className="flex items-center text-emerald-500 font-medium">
           <span>Learn more</span>
           <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -145,7 +145,7 @@ export default function CoursesPage(): JSX.Element {
         {categories.length === 0 ? (
           <p className="text-center text-gray-600">No course categories available at the moment.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 text-gray-700 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {categories.map((category) => (
               <CourseCard
                 key={category.id}

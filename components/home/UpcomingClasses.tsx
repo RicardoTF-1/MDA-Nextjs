@@ -1,144 +1,322 @@
-// components/home/UpcomingClasses.js
 'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { fetchLocations } from '/lib/api'  // Keep the same import path as Slider
+import { fetchLocations, fetchCourseLocationsWithSchedules } from '/lib/api'
 
-export default function UpcomingClasses() {
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  
+// Interfaces basadas en los modelos actualizados
+interface ClassSchedule {
+  id: number;
+  date: string;
+  time: string;
+  is_full: boolean;
+  spots_left?: number;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  slug: string;
+  category_name?: string;
+  subcategory_name?: string;
+}
+
+interface Location {
+  id: number;
+  name: string;
+  city: string;
+  state: string;
+  address: string;
+  zip_code: string;
+  phone: string;
+}
+
+interface CourseLocation {
+  id: number;
+  course_title: string;
+  location_name: string;
+  schedule_date?: string;
+  schedule_time?: string;
+  schedule_is_full?: boolean;
+  schedule_spots_left?: number;
+  is_available: boolean;
+  price?: number;
+  registration_link: string;
+}
+
+export default function UpcomingClasses(): JSX.Element {
+  // Estados
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [courseLocations, setCourseLocations] = useState<Map<number, CourseLocation[]>>(new Map());
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeLocationId, setActiveLocationId] = useState<number | null>(null);
+  const [debug, setDebug] = useState<string>('');
+
+  // Cargar datos
   useEffect(() => {
-    const loadLocations = async () => {
-                // Inside the loadLocations function in UpcomingClasses.tsx
-        try {
-            setLoading(true);
-            const data = await fetchLocations('with_schedules');
-            console.log('API Response:', data);
-            setLocations(data);
-        } catch (err) {
-            console.error('Error loading locations with schedules:', err);
-            setError('No se pudieron cargar los horarios de clases');
-        } finally {
-            setLoading(false);
+    const loadData = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setDebug('Iniciando carga de datos...');
+        
+        // Paso 1: Obtener todas las ubicaciones
+        const locationsData = await fetchLocations();
+        console.log('Locations Data:', locationsData);
+        setDebug(prev => prev + '\nLocaciones cargadas: ' + locationsData.length);
+        
+        if (!Array.isArray(locationsData) || locationsData.length === 0) {
+          setError('No se encontraron ubicaciones');
+          setLoading(false);
+          return;
         }
-    }
+        
+        // Guardar las ubicaciones y establecer la primera como activa
+        setLocations(locationsData);
+        if (locationsData.length > 0) {
+          setActiveLocationId(locationsData[0].id);
+        }
+        
+        // Paso 2: Cargar CourseLocations con sus Schedules para cada ubicación
+        const courseLocationsMap = new Map<number, CourseLocation[]>();
+        
+        for (const location of locationsData) {
+          try {
+            // Obtener CourseLocations para esta ubicación con sus schedules
+            const locationCourseLocations = await fetchCourseLocationsWithSchedules({
+              locationId: location.id,
+              withSchedule: true
+            });
+            
+            console.log(`CourseLocations para ${location.name}:`, locationCourseLocations);
+            setDebug(prev => prev + `\nCourseLocations para ${location.name}: ${locationCourseLocations.length}`);
+            
+            // Guardar en el mapa
+            courseLocationsMap.set(location.id, locationCourseLocations);
+          } catch (err) {
+            console.error(`Error cargando CourseLocations para ${location.name}:`, err);
+            setDebug(prev => prev + `\nError cargando CourseLocations para ${location.name}`);
+            courseLocationsMap.set(location.id, []);
+          }
+        }
+        
+        setCourseLocations(courseLocationsMap);
+        
+      } catch (err) {
+        console.error('Error general cargando datos:', err);
+        setError('No se pudieron cargar los horarios de clases');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    loadLocations()
-  }, [])
-  
+    loadData();
+  }, []);
+
+  // Cambiar ubicación activa
+  const handleLocationChange = (locationId: number): void => {
+    setActiveLocationId(locationId);
+  };
+
+  // Formatear fecha para mostrar
+  const formatDate = (dateStr?: string): string => {
+    if (!dateStr) return '';
+    
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', { 
+        month: 'long',
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  // Formatear hora para mostrar en formato AM/PM
+  const formatTime = (timeStr?: string): string => {
+    if (!timeStr) return '';
+    
+    try {
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${minutes || '00'} ${ampm}`;
+    } catch (e) {
+      return timeStr;
+    }
+  };
+
+  // Estado de carga
   if (loading) {
-    return <div className="p-4 text-center">Cargando horarios...</div>
+    return (
+      <div className="p-4 text-center">
+        <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-emerald-500 mr-2"></div>
+        <span>Cargando horarios...</span>
+      </div>
+    );
   }
   
+  // Estado de error
   if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>
+    return <div className="p-4 text-center text-red-500">{error}</div>;
   }
   
-  // Filter locations to only include those with schedules
-  const locationsWithSchedules = locations.filter(loc => loc.schedules && loc.schedules.length > 0)
-  
-  if (locationsWithSchedules.length === 0) {
-    return <div className="p-4 text-center">No hay horarios de clases disponibles actualmente.</div>
+  // No hay ubicaciones disponibles
+  if (!Array.isArray(locations) || locations.length === 0) {
+    return (
+      <div className="p-4 text-center">
+        No hay horarios de clases disponibles actualmente.
+      </div>
+    );
   }
+
+  // Obtener la ubicación activa
+  const activeLocation = locations.find(loc => loc.id === activeLocationId) || locations[0];
+  const activeCourseLocations = courseLocations.get(activeLocation.id) || [];
   
   return (
-    <div className="py-10 px-4">
+    <div className="py-8 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
-        {/* 30 Hours Header */}
-        <div className="bg-green-400 text-white text-center p-6 rounded-lg mb-8">
-          <h2 className="font-bold text-3xl md:text-4xl">
-            30 HORAS DE EDUCACIÓN<br />
-            PARA CONDUCTORES<br />
-            ADOLESCENTES
-          </h2>
-        </div>
-        
-        {/* Course Description */}
-        <div className="mb-8">
-          <p className="text-xl font-bold text-center md:text-left">
-            Curso todo en uno para que los nuevos conductores adolescentes cumplan con los requisitos estatales y obtengan la licencia.
+        {/* Badge y título */}
+        <div className="text-center mb-8">
+          <div className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm font-medium mb-2">
+            Class Schedule
+          </div>
+          <h2 className="text-3xl text-gray-700 font-bold">Upcoming Classes</h2>
+          <p className="mt-2 text-gray-600">
+            Find classes at our locations across Chicago that fit your schedule.
           </p>
         </div>
         
-        <div className="mb-10">
-          <h3 className="text-2xl font-bold text-green-400 mb-4">
-            HORARIOS DE CLASES PRÓXIMOS
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {/* Schedule List Column */}
-            <div className="space-y-6">
-              {locationsWithSchedules.map(location => (
-                <div key={location.id}>
-                  <div className="bg-green-400 text-white font-bold py-2 px-4 rounded-lg uppercase">
-                    {location.name}
-                  </div>
-                  
-                  <div className="space-y-2 mt-2">
-                    {location.schedules.map(schedule => (
-                      <div 
-                        key={schedule.id} 
-                        className="bg-gray-200 py-2 px-4 rounded-lg text-center"
-                      >
-                        {schedule.formatted_date}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+        <h3 className="text-xl font-bold text-gray-700 mb-4">
+          UPCOMING CLASS SCHEDULES
+        </h3>
+        
+        {/* Pestañas de ubicaciones */}
+        <div className="mb-4">
+          <div className="flex rounded-lg overflow-hidden">
+            {locations.map(location => (
+              <button 
+                key={location.id} 
+                className={`py-2 px-6 text-center text-sm transition-colors duration-200 flex-1 ${
+                  activeLocationId === location.id 
+                    ? 'bg-emerald-500 text-white font-medium' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+                onClick={() => handleLocationChange(location.id)}
+              >
+                {location.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Información de la ubicación */}
+        <div className="bg-gray-100 rounded-lg p-4 mb-6">
+          <div className="flex items-center text-gray-700">
+            <div className="text-emerald-500 mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
             </div>
-            
-            {/* Location Cards Column */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {locationsWithSchedules.map(location => (
-                <div key={location.id} className="rounded-lg overflow-hidden shadow-md">
-                  <div className="relative h-48">
-                    <div
-                      style={{
-                        backgroundImage: `url(${location.image_url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        zIndex: 1
-                      }}
-                    ></div>
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        zIndex: 2,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <h3 className="text-white text-2xl font-bold">{location.name}</h3>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 bg-white text-center">
-                    <Link
-                      href="/contacto"
-                      className="inline-block bg-green-400 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full transition"
-                    >
-                      Regístrate Ahora
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <p className="font-medium">
+                {activeLocation.address}, {activeLocation.city}, {activeLocation.state} {activeLocation.zip_code}
+              </p>
+              <p className="text-gray-500">
+                {activeLocation.phone}
+              </p>
             </div>
           </div>
         </div>
+        
+        {/* Lista de clases */}
+        {activeCourseLocations.length > 0 ? (
+          <div>
+            {activeCourseLocations.map(courseLocation => (
+              <div key={courseLocation.id} className="border-b py-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-800">
+                      {courseLocation.course_title}
+                    </h4>
+                    {courseLocation.schedule_date && courseLocation.schedule_time && (
+                      <div className="flex items-center mt-1 text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1 text-gray-500">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5" />
+                        </svg>
+                        <span className="mr-2">{formatDate(courseLocation.schedule_date)}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1 ml-2 text-gray-500">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{formatTime(courseLocation.schedule_time)} - 6:00 PM</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center mt-3 sm:mt-0">
+                    {courseLocation.schedule_spots_left !== undefined && (
+                      <span className="text-gray-600 mr-4">
+                        {courseLocation.schedule_spots_left} spots left
+                      </span>
+                    )}
+                    <Link
+                      href={courseLocation.registration_link || "/contact"}
+                      className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                    >
+                      Register Now
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
+            There are no classes scheduled for this location.
+          </div>
+        )}
+        
+        {/* Botón para ver todas las clases */}
+        <div className="mt-8 text-center">
+          <Link
+            href="/courses"
+            className="inline-block bg-emerald-500 text-white hover:bg-emerald-700 hover:text-white font-medium py-2 px-6 rounded-md transition-colors"
+          >
+            View All Classes
+          </Link>
+        </div>
       </div>
+      
+      {/* Información de debugging - solo visible en desarrollo */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 p-4 bg-gray-100 rounded text-xs">
+          <h4 className="font-bold mb-2">Debug Info:</h4>
+          <p>Active Location: {activeLocation?.name}</p>
+          <p>Active CourseLocations: {activeCourseLocations.length}</p>
+          <details>
+            <summary className="cursor-pointer text-blue-500">Location Details</summary>
+            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
+              {JSON.stringify(activeLocation, null, 2)}
+            </pre>
+          </details>
+          <details>
+            <summary className="cursor-pointer text-blue-500 mt-2">CourseLocation Details</summary>
+            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
+              {JSON.stringify(activeCourseLocations, null, 2)}
+            </pre>
+          </details>
+          <details>
+            <summary className="cursor-pointer text-blue-500 mt-2">Debug Log</summary>
+            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
+              {debug}
+            </pre>
+          </details>
+        </div>
+      )}
     </div>
-  )
+  );
 }
