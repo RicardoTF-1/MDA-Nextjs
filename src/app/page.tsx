@@ -11,12 +11,17 @@ import CategorySection from '../../components/home/CategorySection'
 import HeroSlider from '../../components/home/HeroSlider'
 import CourseFinder from '../../components/courses/CourseFinder'
 import HomeBlogSection from '../../components/home/HomeBlogSection'
+import AdultPrograms from '../../components/home/AdultPrograms' // Add this import
+import AdultProgramsSlider from '../../components/home/AdultProgramsSlider';
 
 
 export default function Home() {
   return (
     <>
       <HeroSlider/>
+      <CourseFinder/>
+      <AdultProgramsSlider/>
+      <AdultPrograms/>
       <CategorySection/>
       <BannerSlider/>
       <CourseFinder/>
