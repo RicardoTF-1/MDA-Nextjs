@@ -21,7 +21,6 @@ export default function Home() {
       <HeroSlider/>
       <CourseFinder/>
       <AdultProgramsSlider/>
-      <AdultPrograms/>
       <CategorySection/>
       <BannerSlider/>
       <CourseFinder/>
