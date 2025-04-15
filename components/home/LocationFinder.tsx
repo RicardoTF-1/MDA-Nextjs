@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { fetchLocations } from '/lib/api';
+import { motion } from 'framer-motion';
 
 interface Location {
   id: number;
@@ -18,20 +19,37 @@ interface Location {
   email?: string;
 }
 
-// Simple Location Card Component
-const LocationCard = ({ location, isActive, onClick }: { 
+// Simple Location Card Component with hover pause functionality
+const LocationCard = ({ 
+  location, 
+  isActive, 
+  onClick, 
+  variants,
+  onMouseEnter,
+  onMouseLeave 
+}: { 
   location: Location;
   isActive: boolean;
   onClick: () => void;
+  variants: any;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }) => {
   return (
-    <div 
+    <motion.div 
       className={`
         flex-shrink-0 w-72 mx-3 bg-white rounded-lg border border-gray-200 overflow-hidden 
-        shadow-sm hover:shadow-md
+        shadow-sm hover:shadow-md cursor-pointer
         ${isActive ? 'ring-2 ring-emerald-500' : ''}
       `}
       onClick={onClick}
+      variants={variants}
+      whileHover={{ 
+        y: -5, 
+        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" 
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {location.image_url && (
         <div className="p-4">
@@ -49,18 +67,20 @@ const LocationCard = ({ location, isActive, onClick }: {
           <div className="mt-1">{location.phone}</div>
           {location.email && <div className="mt-1">{location.email}</div>}
         </address>
-        <a 
+        <motion.a 
           href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
             `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
           )}`}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-block bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium py-1 px-3 rounded transition-colors"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Get directions
-        </a>
+        </motion.a>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -73,11 +93,43 @@ export default function LocationFinder(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [position, setPosition] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
   
   // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
   
+  // Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Activate animation when section is at least 10% visible
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // Reset state when out of view to repeat animation on next scroll
+          setIsVisible(false);
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1 // 10% visibility
+      }
+    );
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+    
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
   // Filter locations by search query
   const filteredLocations = locations.filter(location => {
     if (!searchQuery) return true;
@@ -179,10 +231,10 @@ export default function LocationFinder(): JSX.Element {
     loadLocations();
   }, []);
 
-  // 2. Setup slider animation
+  // 2. Setup slider animation - manages pausing and resuming without position reset
   useEffect(() => {
-    // Reset position and clear any existing interval when filtered results change
-    setPosition(0);
+    // Only clear interval if we need to create a new one
+    // This prevents position reset when pausing/resuming
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -218,131 +270,204 @@ export default function LocationFinder(): JSX.Element {
     };
   }, [filteredLocations.length, isPaused]);
   
-  // 3. Handle hover events for pausing/resuming the slider
+  // Reset position only when filtered results change, not on pause/resume
   useEffect(() => {
-    const sliderElement = sliderRef.current;
-    if (!sliderElement) return;
-    
-    const handleMouseEnter = () => {
-      setIsPaused(true);
-    };
-    
-    const handleMouseLeave = () => {
-      setIsPaused(false);
-    };
-    
-    sliderElement.addEventListener('mouseenter', handleMouseEnter);
-    sliderElement.addEventListener('mouseleave', handleMouseLeave);
-    
-    return () => {
-      sliderElement.removeEventListener('mouseenter', handleMouseEnter);
-      sliderElement.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, []);
+    setPosition(0);
+  }, [filteredLocations.length]);
+  
+  // Handlers for hover pause
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+  };
+  
+  const handleMouseLeave = () => {
+    setIsPaused(false);
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const titleVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { y: 50, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
+  const mapVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        delay: 0.2,
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-[300px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      <div className="min-h-[300px] flex items-center justify-center" ref={sectionRef}>
+        <motion.div 
+          className="rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        ></motion.div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="bg-gray-50 py-8" ref={sectionRef}>
       <div className="container mx-auto px-4 max-w-6xl">
-        <h2 className="text-2xl text-gray-700 font-bold text-center mb-6">
-          Find a location near you
-        </h2>
-        
-        {error && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 text-sm">
-            <p className="text-yellow-700">{error}</p>
-            <p className="text-yellow-700">Showing sample data.</p>
-          </div>
-        )}
-        
-        {/* Search input */}
-        <div className="mb-6 max-w-md mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search locations..."
-              className="w-full px-4 py-2 text-emerald-600 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg 
-                className="h-4 w-4 text-gray-400" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-6">
-          {/* Location cards slider */}
-          {filteredLocations.length > 0 ? (
-            <div className="relative overflow-hidden py-4">
-              {/* Simplified slider container */}
-              <div 
-                ref={sliderRef}
-                className="flex"
-                style={{ transform: `translateX(-${position}px)` }}
-              >
-                {displayLocations.map((location, index) => (
-                  <LocationCard
-                    key={`${location.id}-${index}`}
-                    location={location}
-                    isActive={location.id === activeLocation}
-                    onClick={() => setActiveLocation(location.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-6 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No locations found matching your search</p>
-            </div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
+          <motion.h2 
+            className="text-2xl text-gray-700 font-bold text-center mb-6"
+            variants={titleVariants}
+          >
+            Find a location near you
+          </motion.h2>
+          
+          {error && (
+            <motion.div 
+              className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 text-sm"
+              variants={titleVariants}
+            >
+              <p className="text-yellow-700">{error}</p>
+              <p className="text-yellow-700">Showing sample data.</p>
+            </motion.div>
           )}
-
-          {/* Simplified Embedded Google Map (using iframe instead of JS API) */}
-          <div className="h-[400px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-            {activeLocation ? (
-              <iframe
-                className="w-full h-full border-0"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&q=${encodeURIComponent(
-                  // Find the active location and build the address string
-                  (() => {
-                    const location = locations.find(loc => loc.id === activeLocation);
-                    return location 
-                      ? `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
-                      : 'Chicago, IL';
-                  })()
-                )}`}
-              ></iframe>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
-                <div className="text-center p-6">
-                  <p>Select a location to view on map</p>
-                </div>
+          
+          {/* Search input */}
+          <motion.div 
+            className="mb-6 max-w-md mx-auto"
+            variants={titleVariants}
+          >
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search locations..."
+                className="w-full px-4 py-2 text-emerald-600 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <svg 
+                  className="h-4 w-4 text-gray-400" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                  />
+                </svg>
               </div>
+            </div>
+          </motion.div>
+          
+          <div className="flex flex-col gap-6">
+            {/* Location cards slider */}
+            {filteredLocations.length > 0 ? (
+              <motion.div 
+                className="relative overflow-hidden py-4"
+                variants={containerVariants}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                {/* Simplified slider container */}
+                <div 
+                  ref={sliderRef}
+                  className="flex"
+                  style={{ transform: `translateX(-${position}px)` }}
+                >
+                  {displayLocations.map((location, index) => (
+                    <LocationCard
+                      key={`${location.id}-${index}`}
+                      location={location}
+                      isActive={location.id === activeLocation}
+                      onClick={() => setActiveLocation(location.id)}
+                      variants={cardVariants}
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                className="text-center py-6 bg-white rounded-lg border border-gray-200"
+                variants={titleVariants}
+              >
+                <p className="text-gray-500">No locations found matching your search</p>
+              </motion.div>
             )}
+
+            {/* Simplified Embedded Google Map (using iframe instead of JS API) */}
+            <motion.div 
+              className="h-[400px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
+              variants={mapVariants}
+            >
+              {activeLocation ? (
+                <iframe
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&q=${encodeURIComponent(
+                    // Find the active location and build the address string
+                    (() => {
+                      const location = locations.find(loc => loc.id === activeLocation);
+                      return location 
+                        ? `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
+                        : 'Chicago, IL';
+                    })()
+                  )}`}
+                ></iframe>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+                  <div className="text-center p-6">
+                    <p>Select a location to view on map</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

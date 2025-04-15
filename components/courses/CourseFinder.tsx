@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchCourseFinderQuestions, getRecommendedCourse } from '../../lib/api'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 const CourseFinderStep = ({ 
   question, 
@@ -40,7 +41,12 @@ const CourseFinderStep = ({
     if (question.question_type === 'location') {
       // For location question, show a dropdown
       return (
-        <div className="mt-6">
+        <motion.div 
+          className="mt-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <select 
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-300 text-emerald-600"
             value={locationValue}
@@ -53,17 +59,25 @@ const CourseFinderStep = ({
               </option>
             ))}
           </select>
-        </div>
+        </motion.div>
       )
     } else {
       // For other questions, show radio buttons
       return (
-        <div className="mt-6 space-y-3">
-          {question.options.map(option => (
-            <div 
+        <motion.div 
+          className="mt-6 space-y-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          {question.options.map((option, index) => (
+            <motion.div 
               key={option.id} 
               className="flex items-center"
               onClick={() => handleOptionSelect(option.id)}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 * (index + 1) }}
             >
               <div 
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -81,9 +95,9 @@ const CourseFinderStep = ({
               >
                 {option.option_text}
               </label>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )
     }
   }
@@ -91,14 +105,21 @@ const CourseFinderStep = ({
   return (
     <div className="p-8">
       {/* Progress indicator - enhanced to match design */}
-      <div className="mb-8 relative">
+      <motion.div 
+        className="mb-8 relative"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* Progress bar background */}
         <div className="h-2 bg-gray-200 rounded-full">
           {/* Active progress */}
-          <div 
-            className="h-2 bg-emerald-500 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          ></div>
+          <motion.div 
+            className="h-2 bg-emerald-500 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          ></motion.div>
         </div>
         
         {/* Step indicators */}
@@ -109,38 +130,55 @@ const CourseFinderStep = ({
             const isCurrent = stepNumber === currentStep;
             
             return (
-              <div 
+              <motion.div 
                 key={index} 
                 className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
                   ${isActive ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'}
                   ${isCurrent ? 'ring-4 ring-green-100' : ''}
                 `}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.1 * (index + 1) }}
               >
                 {stepNumber}
-              </div>
+              </motion.div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
       
-      <h3 className="text-xl font-semibold mb-4 text-gray-700">{question.question_text}</h3>
+      <motion.h3 
+        className="text-xl font-semibold mb-4 text-gray-700"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        {question.question_text}
+      </motion.h3>
       
       {renderQuestionContent()}
       
-      <div className="mt-10 flex justify-between">
+      <motion.div 
+        className="mt-10 flex justify-between"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         {currentStep > 1 ? (
-          <button
+          <motion.button
             onClick={onBack}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Back
-          </button>
+          </motion.button>
         ) : (
           <div></div> // Empty div to maintain layout with flex justify-between
         )}
         
-        <button
+        <motion.button
           onClick={onNext}
           disabled={!localSelection}
           className={`
@@ -149,6 +187,8 @@ const CourseFinderStep = ({
               ? 'bg-emerald-500 hover:bg-emerald-600' 
               : 'bg-gray-300 cursor-not-allowed'}
           `}
+          whileHover={localSelection ? { scale: 1.05 } : {}}
+          whileTap={localSelection ? { scale: 0.95 } : {}}
         >
           {isLastStep ? 'Find My Course' : 'Next'}
           {!isLastStep && (
@@ -156,8 +196,8 @@ const CourseFinderStep = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           )}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   )
 }
@@ -167,10 +207,21 @@ const CourseResult = ({ recommendation, onStartOver }) => {
   
   return (
     <div className="p-8">
-      <h3 className="text-2xl font-bold mb-2 text-gray-900">Your Recommended Course</h3>
-      <p className="text-gray-600 mb-8">Based on your selections</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h3 className="text-2xl font-bold mb-2 text-gray-900">Your Recommended Course</h3>
+        <p className="text-gray-600 mb-8">Based on your selections</p>
+      </motion.div>
       
-      <div className="bg-green-50 p-6 rounded-lg mb-8">
+      <motion.div 
+        className="bg-green-50 p-6 rounded-lg mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <h4 className="text-2xl font-bold text-green-600 mb-2">{course.title}</h4>
         <p className="text-gray-800 text-lg mb-4">{recommendation.description || course.description}</p>
         
@@ -189,32 +240,50 @@ const CourseResult = ({ recommendation, onStartOver }) => {
           <h5 className="text-gray-700 font-medium mb-2">Includes:</h5>
           <ul className="space-y-2">
             {course.bullet_point_list && course.bullet_point_list.map((item, index) => (
-              <li key={index} className="flex items-start">
+              <motion.li 
+                key={index} 
+                className="flex items-start"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 + (index * 0.1) }}
+              >
                 <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 <span className="text-gray-800">{item}</span>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </div>
-      </div>
+      </motion.div>
       
-      <div className="space-y-4">
-        <Link 
-          href={`/courses/${course.slug}/register`}
-          className="block w-full py-3 bg-emerald-500 text-white text-center font-semibold rounded-md hover:bg-emerald-600 transition"
+      <motion.div 
+        className="space-y-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <motion.div
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
-          Register for This Course
-        </Link>
+          <Link 
+            href={`/courses/${course.slug}/register`}
+            className="block w-full py-3 bg-emerald-500 text-white text-center font-semibold rounded-md hover:bg-emerald-600 transition"
+          >
+            Register for This Course
+          </Link>
+        </motion.div>
         
-        <button
+        <motion.button
           onClick={onStartOver}
           className="block w-full py-3 border border-gray-300 text-center rounded-md hover:bg-gray-50 transition"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
           Start Over
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   )
 }
@@ -227,7 +296,39 @@ export default function CourseFinder() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showResults, setShowResults] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const sectionRef = useRef(null)
   
+  // Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Activate animation when section is at least 10% visible
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        } else {
+          // Reset state when out of view to repeat animation on next scroll
+          setIsVisible(false)
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1 // 10% visibility
+      }
+    )
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+    
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     const loadQuestions = async () => {
       try {
@@ -344,13 +445,44 @@ export default function CourseFinder() {
     setShowResults(false)
   }
   
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  }
+  
   if (loading && questions.length === 0) {
     return (
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-50 py-16" ref={sectionRef}>
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
             <div className="p-8 flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+              <motion.div 
+                className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              ></motion.div>
             </div>
           </div>
         </div>
@@ -360,12 +492,17 @@ export default function CourseFinder() {
   
   if (error && questions.length === 0) {
     return (
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-50 py-16" ref={sectionRef}>
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center text-red-500">
+            <motion.div 
+              className="text-center text-red-500"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               {error}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -374,12 +511,17 @@ export default function CourseFinder() {
   
   if (questions.length === 0) {
     return (
-      <div className="bg-gray-50 py-16">
+      <div className="bg-gray-50 py-16" ref={sectionRef}>
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center text-gray-500">
+            <motion.div 
+              className="text-center text-gray-500"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               No course finder questions available.
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -391,23 +533,48 @@ export default function CourseFinder() {
   const selectedOption = answers[currentQuestionType]
   
   return (
-    <div className="bg-gray-50 py-16">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <span className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 text-sm font-medium rounded-full mb-4">
+    <div className="bg-gray-50 py-16" ref={sectionRef}>
+      <motion.div 
+        className="container mx-auto px-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+      >
+        <motion.div 
+          className="text-center mb-8"
+          variants={containerVariants}
+        >
+          <motion.span 
+            className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 text-sm font-medium rounded-full mb-4"
+            variants={itemVariants}
+          >
             Find Your Path
-          </span>
-          <h2 className="text-3xl text-gray-700 md:text-4xl font-bold mb-4">Find the Perfect Course for You</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          </motion.span>
+          <motion.h2 
+            className="text-3xl text-gray-700 md:text-4xl font-bold mb-4"
+            variants={itemVariants}
+          >
+            Find the Perfect Course for You
+          </motion.h2>
+          <motion.p 
+            className="text-gray-600 max-w-2xl mx-auto"
+            variants={itemVariants}
+          >
             Answer a few quick questions and we'll recommend the best driving program for your needs.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
         
         {/* Modified layout for the final screen with the recommendation on the right */}
         {showResults ? (
-          <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
+          <motion.div 
+            className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto"
+            variants={containerVariants}
+          >
             {/* The questionnaire history on the left */}
-            <div className="lg:w-1/2 bg-white rounded-lg shadow-lg overflow-hidden">
+            <motion.div 
+              className="lg:w-1/2 bg-white rounded-lg shadow-lg overflow-hidden"
+              variants={itemVariants}
+            >
               <div className="p-8">
                 <h3 className="text-xl text-gray-700 font-semibold mb-6">Your Selections</h3>
                 
@@ -418,7 +585,13 @@ export default function CourseFinder() {
                     const selectedOption = question.options.find(opt => opt.id === selectedOptionId);
                     
                     return (
-                      <div key={question.id} className="border-b border-gray-200 pb-4 last:border-0">
+                      <motion.div 
+                        key={question.id} 
+                        className="border-b border-gray-200 pb-4 last:border-0"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
                         <p className="text-gray-500 text-sm mb-1">Question {index + 1}</p>
                         <h4 className="font-medium mb-2 text-gray-900">{question.question_text}</h4>
                         {selectedOption ? (
@@ -429,30 +602,38 @@ export default function CourseFinder() {
                         ) : (
                           <p className="text-gray-400 italic">No selection</p>
                         )}
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
                 
-                <button
+                <motion.button
                   onClick={handleStartOver}
                   className="mt-6 w-full py-3 border border-gray-300 text-center text-gray-700 rounded-md hover:bg-gray-50 transition"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   Start Over
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
             
             {/* The recommendation on the right */}
-            <div className="lg:w-1/2 bg-white rounded-lg shadow-lg overflow-hidden text-gray-700">
+            <motion.div 
+              className="lg:w-1/2 bg-white rounded-lg shadow-lg overflow-hidden text-gray-700"
+              variants={itemVariants}
+            >
               <CourseResult 
                 recommendation={recommendation} 
                 onStartOver={handleStartOver}
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ) : (
-          <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+          <motion.div 
+            className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden"
+            variants={itemVariants}
+          >
             <CourseFinderStep
               question={currentQuestion}
               selectedOption={selectedOption}
@@ -463,9 +644,9 @@ export default function CourseFinder() {
               currentStep={currentQuestionIndex + 1}
               totalSteps={questions.length}
             />
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }
