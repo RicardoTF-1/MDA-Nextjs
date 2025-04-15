@@ -1,90 +1,122 @@
-"use client"
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
-export default function BlogSidebar({ categories }) {
+// Define TypeScript interfaces
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  post_count?: number;
+}
+
+interface CategoryTabsProps {
+  categories: Category[];
+}
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      staggerChildren: 0.08
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 20
+    }
+  }
+};
+
+export default function CategoryTabs({ categories }: CategoryTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [searchValue, setSearchValue] = useState('');
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams?.get('category') || 'all';
   
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!searchValue.trim()) return;
+  // Setup intersection observer for animation
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
+  
+  const handleCategoryChange = (categorySlug: string) => {
+    const params = new URLSearchParams(searchParams?.toString());
     
-    const params = new URLSearchParams();
-    params.set('search', searchValue);
+    if (categorySlug === 'all') {
+      params.delete('category');
+    } else {
+      params.set('category', categorySlug);
+    }
     
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Search Box */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-bold mb-4">Search Articles</h3>
-        <form onSubmit={handleSearch}>
-          <div className="flex">
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search..."
-              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition"
-            >
-              Search
-            </button>
-          </div>
-        </form>
-      </div>
-      
-      {/* Categories */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-bold mb-4">Categories</h3>
-        <ul className="space-y-2">
-          {categories?.map((category) => (
-            <li key={category.id}>
-              <Link
-                href={`/knowledge-hub/blog?category=${category.slug}`}
-                className="flex items-center justify-between text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                <span>{category.name}</span>
-                {category.post_count > 0 && (
-                  <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
-                    {category.post_count}
-                  </span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      {/* Subscribe Box */}
-      <div className="bg-blue-600 text-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-bold mb-2">Stay Updated</h3>
-        <p className="text-sm mb-4">
-          Subscribe to our newsletter to receive the latest driving tips and resources.
-        </p>
-        <form className="space-y-3">
-          <input
-            type="email"
-            placeholder="Your email address"
-            className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-white text-blue-600 rounded-md hover:bg-gray-100 transition"
+    <motion.div 
+      ref={ref}
+      className="mb-8 overflow-x-auto"
+      variants={containerVariants}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+    >
+      <div className="flex space-x-2 pb-2">
+        <motion.button
+          variants={itemVariants}
+          onClick={() => handleCategoryChange('all')}
+          className={`px-4 py-2 rounded-md whitespace-nowrap ${
+            currentCategory === 'all'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+          }`}
+          whileHover={{ y: -2 }}
+          whileTap={{ y: 0 }}
+        >
+          All Posts
+        </motion.button>
+        
+        {categories.map((category) => (
+          <motion.button
+            key={category.id}
+            variants={itemVariants}
+            onClick={() => handleCategoryChange(category.slug)}
+            className={`px-4 py-2 rounded-md whitespace-nowrap ${
+              currentCategory === category.slug
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+            }`}
+            whileHover={{ y: -2 }}
+            whileTap={{ y: 0 }}
           >
-            Subscribe
-          </button>
-        </form>
+            {category.name}
+            {category.post_count !== undefined && category.post_count > 0 && (
+              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-opacity-80 inline-block">
+                {category.post_count}
+              </span>
+            )}
+          </motion.button>
+        ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,9 +1,11 @@
 // app/courses/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { fetchCourseCategories } from '@/lib/api';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 // Define interfaces for our data types
 interface CourseCategory {
@@ -21,38 +23,80 @@ interface CourseCategoryCardProps {
   description: string;
   link: string;
   iconSvg: string | null;
+  index: number;
 }
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      damping: 12,
+      stiffness: 100
+    }
+  }
+};
 
 // CourseCard component with proper typing
 const CourseCard: React.FC<CourseCategoryCardProps> = ({ 
   title, 
   description, 
   link, 
-  iconSvg 
+  iconSvg,
+  index
 }) => {
   return (
-    <Link href={link} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="p-6">
-        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-emerald-600">
-          {iconSvg ? (
-            <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
-          ) : (
-            // Fallback icon if no SVG is provided
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    <motion.div
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+    >
+      <Link href={link}>
+        <motion.div 
+          className="p-6"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-emerald-600">
+            {iconSvg ? (
+              <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
+            ) : (
+              // Fallback icon if no SVG is provided
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            )}
+          </div>
+          <h3 className="text-xl font-bold mb-2">{title}</h3>
+          <p className="text-gray-600 mb-4">{description}</p>
+          <motion.div 
+            className="flex items-center text-emerald-500 font-medium"
+            whileHover={{ x: 5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <span>Learn more</span>
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
             </svg>
-          )}
-        </div>
-        <h3 className="text-xl font-bold mb-2">{title}</h3>
-        <p className="text-gray-600 mb-4">{description}</p>
-        <div className="flex items-center text-emerald-500 font-medium">
-          <span>Learn more</span>
-          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-        </div>
-      </div>
-    </Link>
+          </motion.div>
+        </motion.div>
+      </Link>
+    </motion.div>
   );
 };
 
@@ -83,12 +127,14 @@ const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => {
     <div className="text-center py-10">
       <div className="text-red-500 text-2xl mb-4">Error Loading Courses</div>
       <p className="text-gray-600">{message}</p>
-      <button 
+      <motion.button 
         onClick={() => window.location.reload()} 
         className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
         Try Again
-      </button>
+      </motion.button>
     </div>
   );
 };
@@ -98,6 +144,12 @@ export default function CoursesPage(): JSX.Element {
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Setup intersection observer with a 10% threshold
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
 
   useEffect(() => {
     const loadCategories = async (): Promise<void> => {
@@ -140,21 +192,43 @@ export default function CoursesPage(): JSX.Element {
   return (
     <div className="bg-gray-50 py-16">
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl text-gray-700 font-bold text-center mb-12">Our Courses</h1>
+        <motion.h1 
+          className="text-4xl text-gray-700 font-bold text-center mb-12"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Our Courses
+        </motion.h1>
         
         {categories.length === 0 ? (
-          <p className="text-center text-gray-600">No course categories available at the moment.</p>
+          <motion.p 
+            className="text-center text-gray-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            No course categories available at the moment.
+          </motion.p>
         ) : (
-          <div className="grid grid-cols-1 text-gray-700 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {categories.map((category) => (
-              <CourseCard
-                key={category.id}
-                title={category.name}
-                description={category.description || 'Learn more about this course category.'}
-                link={`/courses/${category.slug}`}
-                iconSvg={category.icon_svg}
-              />
-            ))}
+          <div ref={ref} className="max-w-6xl mx-auto">
+            <motion.div 
+              className="grid grid-cols-1 text-gray-700 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={containerVariants}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+            >
+              {categories.map((category, index) => (
+                <CourseCard
+                  key={category.id}
+                  title={category.name}
+                  description={category.description || 'Learn more about this course category.'}
+                  link={`/courses/${category.slug}`}
+                  iconSvg={category.icon_svg}
+                  index={index}
+                />
+              ))}
+            </motion.div>
           </div>
         )}
       </div>
