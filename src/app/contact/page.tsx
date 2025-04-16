@@ -1,53 +1,67 @@
 // app/contact/page.js
-import ContactForm from '/components/contact/ContactForm'
+import { Suspense } from 'react';
+import ContactForm from '@/components/contact/ContactForm';
+import ContactInfoBar from '@/components/contact/ContactInfoBar';
+import VerticalContactInfoBar from '@/components/contact/ContactInfoBar';
 
 export const metadata = {
-  title: 'Contacto | My Drive Academy',
-  description: 'Contáctanos para obtener más información sobre nuestros cursos de manejo o para inscribirte en clases.',
-}
+  title: 'Contact Us | My Drive Academy',
+  description: 'Contact us for more information about our driving courses or to enroll in classes.',
+};
+
+// This is a client component wrapper for the banner
+const ContactBanner = () => {
+  return (
+    <div className="relative w-full overflow-hidden rounded-xl mb-1">
+      <img 
+        src="/images/banners/contact-banner.png" 
+        alt="My Drive Academy building" 
+        className="w-full h-48 md:h-64 object-cover"
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">Contact Us</h1>
+      </div>
+    </div>
+  );
+};
 
 export default function ContactPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Contacto</h1>
-      
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="md:flex">
-            <div className="md:w-1/2 bg-blue-600 text-white p-6">
-              <h2 className="text-xl font-bold mb-4">Información de Contacto</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <p className="font-semibold">Teléfono:</p>
-                  <p>(123) 456-7890</p>
-                </div>
-                
-                <div>
-                  <p className="font-semibold">Email:</p>
-                  <p>info@mydriveacademy.com</p>
-                </div>
-                
-                <div>
-                  <p className="font-semibold">Horario de atención:</p>
-                  <p>Lunes a Viernes: 9:00 AM - 6:00 PM</p>
-                  <p>Sábados: 9:00 AM - 1:00 PM</p>
-                </div>
-                
-                <div>
-                  <p className="font-semibold">Dirección principal:</p>
-                  <p>123 Main Street, Chicago, IL 60601</p>
-                </div>
-              </div>
+    <div className="bg-gray-50 min-h-screen py-8">
+      <div className="container mx-auto px-4">
+        {/* Banner with centered title */}
+        <Suspense fallback={<div className="h-48 bg-gray-200 animate-pulse rounded-xl mb-10"></div>}>
+          <ContactBanner />
+        </Suspense>
+        
+        {/* Horizontal Contact Info Bar */}
+        {/* <Suspense fallback={<div className="h-16 bg-gray-200 animate-pulse rounded-lg mb-8"></div>}>
+          <ContactInfoBar />
+        </Suspense> */}
+        
+        <div className="max-w-6xl mx-auto mt-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in touch</h2>
+          <p className="text-gray-600 mb-8 max-w-2xl">
+            Fill the form with your query, and our team will get back to you asap.
+          </p>
+          
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left column: Contact form */}
+            <div className="lg:w-2/3 bg-blue-50 rounded-xl p-8">
+              <Suspense fallback={<div className="h-96 bg-gray-200 animate-pulse rounded-md"></div>}>
+                <ContactForm />
+              </Suspense>
             </div>
             
-            <div className="md:w-1/2 p-6">
-              <h2 className="text-xl font-bold mb-4">Envíanos un mensaje</h2>
-              <ContactForm />
+            {/* Right column: Vertical contact information */}
+            <div className="lg:w-1/3">
+              <Suspense fallback={<div className="h-80 bg-gray-200 animate-pulse rounded-md"></div>}>
+                <VerticalContactInfoBar />
+              </Suspense>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
