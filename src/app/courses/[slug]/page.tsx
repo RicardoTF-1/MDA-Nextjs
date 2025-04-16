@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchCourseCategory, fetchCoursesByCategorySlug, checkBackendConnection } from '/lib/api';
+import { fetchCourseCategory, fetchCoursesByCategorySlug } from '@/lib/api'; // Fixed import path with @/
 import Link from 'next/link';
 
 // Define interfaces for TypeScript
@@ -204,11 +204,17 @@ export default function CourseCategoryPage(): JSX.Element {
   // Check backend connection
   useEffect(() => {
     const checkConnection = async (): Promise<void> => {
-      const isAvailable = await checkBackendConnection();
-      setBackendAvailable(isAvailable);
+      try {
+        // Use a simple API call to check if backend is available
+        await fetchCourseCategory(slug);
+        setBackendAvailable(true);
+      } catch (error) {
+        console.error('Backend connection check failed:', error);
+        setBackendAvailable(false);
+      }
     };
     checkConnection();
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
     const loadCategoryData = async (): Promise<void> => {
@@ -393,8 +399,8 @@ export default function CourseCategoryPage(): JSX.Element {
           {!categoryData.has_subcategories && courses.length > 0 && (
             <div className="mt-12 text-center border-t border-gray-200 pt-8">
               <p className="text-gray-600 max-w-3xl mx-auto">
-                Students enrolling in any of these packages must have a learner's permit and submit proof 
-                that they have successfully completed a Driver's Education class, either in high school 
+                Students enrolling in any of these packages must have a learner&apos;s permit and submit proof 
+                that they have successfully completed a Driver&apos;s Education class, either in high school 
                 or at a private driving school.
               </p>
             </div>

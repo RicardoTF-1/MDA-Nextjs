@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { submitContactForm } from '/lib/api';
+import { submitContactForm } from '@/lib/api';
 
 // Animation variants
 const formControlVariants = {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { fetchCourse, checkBackendConnection } from '@/lib/api';
+import { fetchCourse } from '@/lib/api';
 
 interface LocationDetails {
   id: number;
@@ -55,14 +55,21 @@ export default function CourseDetailPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [backendAvailable, setBackendAvailable] = useState<boolean>(true);
 
-  // Check backend connection
+  // Check backend connection using the fetchCourse function
   useEffect(() => {
     const checkConnection = async (): Promise<void> => {
-      const isAvailable = await checkBackendConnection();
-      setBackendAvailable(isAvailable);
+      try {
+        // We'll make an attempt to fetch the course data
+        // If it succeeds, the backend is available
+        await fetchCourse(courseSlug);
+        setBackendAvailable(true);
+      } catch (err) {
+        console.error('Backend connection check failed:', err);
+        setBackendAvailable(false);
+      }
     };
     checkConnection();
-  }, []);
+  }, [courseSlug]);
 
   useEffect(() => {
     const loadCourseData = async (): Promise<void> => {
@@ -261,7 +268,7 @@ export default function CourseDetailPage(): JSX.Element {
                   </div>
                 )}
                 
-                <h2 className="text-xl font-bold text-gray-800 mt-8 mb-4">What You'll Learn</h2>
+                <h2 className="text-xl font-bold text-gray-800 mt-8 mb-4">What You&apos;ll Learn</h2>
                 <ul className="space-y-4">
                   {course.bullet_point_list && course.bullet_point_list.map((point, idx) => (
                     <li key={idx} className="flex items-start">
@@ -276,8 +283,8 @@ export default function CourseDetailPage(): JSX.Element {
                 {/* Requirements Note */}
                 <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
                   <p className="text-blue-800 text-sm">
-                    <strong>Note:</strong> Students enrolling in this course must have a learner's permit and 
-                    submit proof that they have successfully completed a Driver's Education class, either in 
+                    <strong>Note:</strong> Students enrolling in this course must have a learner&apos;s permit and 
+                    submit proof that they have successfully completed a Driver&apos;s Education class, either in 
                     high school or at a private driving school.
                   </p>
                 </div>
