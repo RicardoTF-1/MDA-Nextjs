@@ -11,16 +11,17 @@ import CategorySection from '../../components/home/CategorySection'
 import HeroSlider from '../../components/home/HeroSlider'
 import CourseFinder from '../../components/courses/CourseFinder'
 import HomeBlogSection from '../../components/home/HomeBlogSection'
-import AdultPrograms from '../../components/home/AdultPrograms' // Add this import
-import AdultProgramsSlider from '../../components/home/AdultProgramsSlider';
-import VoiceAssistant from '../../components/home/VoiceAssistant';
+import AdultProgramsSlider from '../../components/home/AdultProgramsSlider' // Add this import
+import DrivingAcademy from '../../components/adult-program-slider' // Updated import for new modular component
+import VoiceAssistant from '../../components/home/VoiceAssistant'
 
 export default function Home() {
   return (
     <>
       <HeroSlider/> {/*Animated*/}
       <CourseFinder/> {/* Animated and Fixed*/}
-      <AdultProgramsSlider/>  {/* Animated - Modulation was not working*/}
+      <DrivingAcademy/> {/* Renamed from AdultProgramsSlider to match our new component */}
+      {/* <AdultProgramsSlider/>   This is the old code with 1k lines, keeping it just for emergency  */}
       <CategorySection/> {/* Animated */}
       <BannerSlider/> {/* Animated */}
       <CourseFinder/> {/* Animated and Fixed*/}
