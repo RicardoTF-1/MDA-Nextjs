@@ -1,7 +1,53 @@
 // components/adult-program-slider/common/SlideContainer.tsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { motion, useAnimation, Variants } from 'framer-motion';
 import { SlideContainerProps } from '../types';
 import SlideNavigation from './SlideNavigation';
+
+// Animation variants
+const containerVariants: Variants = {
+  hidden: { 
+    opacity: 0
+  },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      duration: 0.5,
+      when: "beforeChildren",
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const backgroundVariants: Variants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.8
+  },
+  visible: { 
+    opacity: 0.3,
+    scale: 1,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut"
+    }
+  }
+};
+
+const contentVariants: Variants = {
+  hidden: { 
+    opacity: 0,
+    y: 20 
+  },
+  visible: { 
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
 
 /**
  * Wrapper component that handles the slide container and navigation
@@ -12,6 +58,9 @@ const SlideContainer: React.FC<SlideContainerProps> = ({
   currentSlide,
   setCurrentSlide
 }) => {
+  const controls = useAnimation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   const nextSlide = (): void => {
     setCurrentSlide(currentSlide === slides.length - 1 ? 0 : currentSlide + 1);
   };
@@ -23,12 +72,57 @@ const SlideContainer: React.FC<SlideContainerProps> = ({
   const goToSlide = (index: number): void => {
     setCurrentSlide(index);
   };
+  
+  // Setup Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          controls.start("visible");
+        } else {
+          controls.start("hidden");
+        }
+      },
+      { threshold: 0.1 } // 10% visibility threshold
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [controls]);
+  
+  // Reset animation when slide changes
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      controls.start("visible");
+    }, 100);
+    
+    return () => clearTimeout(timeout);
+  }, [currentSlide, controls]);
 
   return (
-    <div className="py-12 px-4 bg-white relative overflow-hidden">
+    <motion.div 
+      className="py-12 px-4 bg-white relative overflow-hidden"
+      ref={containerRef}
+      initial="hidden"
+      animate={controls}
+      variants={containerVariants}
+    >
       {/* Background decorative elements */}
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-50 rounded-full opacity-30"></div>
-      <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-50 rounded-full opacity-30"></div>
+      <motion.div 
+        className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-50 rounded-full opacity-30"
+        variants={backgroundVariants}
+      ></motion.div>
+      <motion.div 
+        className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-50 rounded-full opacity-30"
+        variants={backgroundVariants}
+      ></motion.div>
       
       {/* Slide navigation buttons and indicators */}
       <SlideNavigation
@@ -40,10 +134,13 @@ const SlideContainer: React.FC<SlideContainerProps> = ({
       />
       
       {/* Current slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      <motion.div 
+        className="transition-all duration-500 ease-in-out"
+        variants={contentVariants}
+      >
         {slides[currentSlide].content}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
