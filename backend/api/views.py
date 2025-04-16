@@ -499,102 +499,106 @@ class CourseFinderViewSet(viewsets.ReadOnlyModelViewSet):
         Expects data in the format:
         {
             "age_group": option_id,
-            "location": option_id or location_id,
+            "location": option_id,
             "experience": option_id
         }
         """
         try:
-            age_group_id = request.data.get('age_group')
-            location_param = request.data.get('location')
-            experience_id = request.data.get('experience')
+            # Log the incoming data for debugging
+            print(f"Course Finder Data: {request.data}")
             
-            # Find matching recommendation rules or direct course matches
-            matching_courses = Course.objects.all()
+            age_group_option_id = request.data.get('age_group')
+            location_option_id = request.data.get('location')
+            experience_option_id = request.data.get('experience')
             
-            # Get the location
-            location_id = None
-            if location_param:
+            # Get the actual option objects (to access their related data)
+            age_option = None
+            location_option = None
+            experience_option = None
+            
+            if age_group_option_id:
                 try:
-                    # First check if it's a location ID
-                    location = Location.objects.get(id=location_param)
-                    location_id = location.id
-                except (ValueError, Location.DoesNotExist):
-                    # Then check if it's an option ID
-                    try:
-                        option = CourseFinderOption.objects.get(id=location_param)
-                        if option.location:
-                            location_id = option.location.id
-                    except CourseFinderOption.DoesNotExist:
-                        pass
-            
-            # Get age group value
-            age_range = None
-            if age_group_id:
+                    age_option = CourseFinderOption.objects.get(id=age_group_option_id)
+                except CourseFinderOption.DoesNotExist:
+                    pass
+                    
+            if location_option_id:
                 try:
-                    option = CourseFinderOption.objects.get(id=age_group_id)
-                    if 'teen' in option.option_text.lower():
-                        age_range = 'teen'
-                    elif 'adult' in option.option_text.lower():
-                        age_range = 'adult'
-                    elif 'international' in option.option_text.lower():
-                        age_range = 'international'
+                    location_option = CourseFinderOption.objects.get(id=location_option_id)
+                except CourseFinderOption.DoesNotExist:
+                    pass
+                    
+            if experience_option_id:
+                try:
+                    experience_option = CourseFinderOption.objects.get(id=experience_option_id)
                 except CourseFinderOption.DoesNotExist:
                     pass
             
-            # Filter courses by age range if available
-            if age_range:
-                matching_courses = matching_courses.filter(
-                    models.Q(age_range=age_range) | models.Q(age_range='all')
-                )
+            print(f"Options: Age={age_option}, Location={location_option}, Experience={experience_option}")
             
-            # Filter courses by location if available
-            if location_id:
-                matching_courses = matching_courses.filter(available_locations__id=location_id)
+            # First try to find a recommendation rule that matches these options
+            matching_rules = CourseRecommendationRule.objects.filter(is_active=True)
             
-            # Filter courses by experience level if available
-            if experience_id:
-                matching_courses = matching_courses.filter(experience_level__id=experience_id)
+            # Filter by age group
+            if age_group_option_id:
+                matching_rules = matching_rules.filter(age_groups__id=age_group_option_id)
             
-            recommended_course = None
+            # Filter by location
+            if location_option and location_option.location:
+                matching_rules = matching_rules.filter(locations__id=location_option.location.id)
             
-            # Try finding a course first
-            if matching_courses.exists():
-                # Prioritize featured courses
-                featured_course = matching_courses.filter(is_featured=True).first()
-                if featured_course:
-                    recommended_course = featured_course
-                else:
-                    recommended_course = matching_courses.first()
+            # Filter by experience
+            if experience_option_id:
+                matching_rules = matching_rules.filter(experience_levels__id=experience_option_id)
             
-            # If no direct course match, try recommendation rules
-            if not recommended_course:
-                matching_rules = CourseRecommendationRule.objects.filter(is_active=True)
+            # Get the highest priority rule
+            rule = matching_rules.order_by('-priority').first()
+            
+            if rule and rule.recommended_course:
+                recommended_course = rule.recommended_course
+                print(f"Found rule: {rule.name} -> Course: {recommended_course.title}")
+            else:
+                # If no rule matched, try to find courses directly
+                courses = Course.objects.filter(is_active=True)
                 
-                if age_group_id:
-                    matching_rules = matching_rules.filter(age_groups__id=age_group_id)
+                # Filter by age group
+                if age_option:
+                    age_text = age_option.option_text.lower()
+                    if 'teen' in age_text:
+                        courses = courses.filter(Q(age_range='teen') | Q(age_range='all'))
+                    elif 'adult' in age_text:
+                        courses = courses.filter(Q(age_range='adult') | Q(age_range='all'))
+                    elif 'international' in age_text:
+                        courses = courses.filter(Q(age_range='international') | Q(age_range='all'))
                 
-                if location_id:
-                    matching_rules = matching_rules.filter(locations__id=location_id)
+                # Filter by location
+                if location_option and location_option.location:
+                    # Find courses that have this location available
+                    courses = courses.filter(
+                        courselocations__location=location_option.location,
+                        courselocations__is_available=True
+                    )
                 
-                if experience_id:
-                    matching_rules = matching_rules.filter(experience_levels__id=experience_id)
+                # Sort by featured status
+                courses = courses.order_by('-is_featured')
                 
-                rule = matching_rules.order_by('-priority').first()
-                
-                if rule:
-                    recommended_course = rule.recommended_course
-            
-            # If still no match, get a default course
-            if not recommended_course:
-                recommended_course = Course.objects.filter(is_featured=True).first() or Course.objects.first()
+                recommended_course = courses.first()
                 
                 if not recommended_course:
-                    return Response(
-                        {"error": "No matching courses found. Please contact us for personalized recommendations."},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
+                    # Final fallback - get any featured course
+                    recommended_course = Course.objects.filter(is_featured=True).first()
+                    if not recommended_course:
+                        recommended_course = Course.objects.first()
+                
+                print(f"Found course: {recommended_course.title if recommended_course else 'None'}")
             
-            # Create a minimal recommendation object to match the expected serializer format
+            if not recommended_course:
+                return Response(
+                    {"error": "No matching courses found. Please contact us for personalized recommendations."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Create a recommendation object to match the serializer format
             recommendation = {
                 "name": recommended_course.title,
                 "description": recommended_course.description,
@@ -605,6 +609,7 @@ class CourseFinderViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data)
             
         except Exception as e:
+            print(f"Error in course recommendation: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST

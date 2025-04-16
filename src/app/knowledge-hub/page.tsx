@@ -3,31 +3,116 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { x: 20, opacity: 0 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      damping: 12,
+      stiffness: 100
+    }
+  }
+};
+
+const fadeInVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
+
+// Add TypeScript interfaces
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  post_count?: number;
+}
+
+interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  category_name: string | null;
+  author_name: string | null;
+  published_date: string | null;
+  featured_image_url: string | null;
+  is_featured?: boolean;
+}
+
+interface CategoryChipProps {
+  name: string;
+  isActive: boolean;
+  onClick: (name: string) => void;
+}
+
+interface FeaturedPostProps {
+  post: BlogPost | null;
+}
+
+interface BlogPostCardProps {
+  post: BlogPost;
+}
+
 // Category chip component
-const CategoryChip = ({ name, isActive, onClick }) => {
+const CategoryChip: React.FC<CategoryChipProps> = ({ name, isActive, onClick }) => {
   return (
-    <button
+    <motion.button
       onClick={() => onClick(name)}
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 mr-2 mb-2 ${
         isActive 
           ? 'bg-emerald-600 text-white' 
           : 'bg-gray-200 text-gray-800 hover:bg-gray-200'
       }`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
       {name}
-    </button>
+    </motion.button>
   );
 };
 
 // Featured post component
-const FeaturedPost = ({ post }) => {
+const FeaturedPost: React.FC<FeaturedPostProps> = ({ post }) => {
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
+  
   if (!post) return null;
   
   return (
-    <div className="relative bg-blue-800 rounded-xl overflow-hidden mb-12">
+    <motion.div 
+      ref={ref}
+      className="relative bg-blue-800 rounded-xl overflow-hidden mb-12"
+      variants={fadeInVariants}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+    >
       <div className="absolute inset-0 opacity-80">
         <img
           src={post.featured_image_url || '/images/placeholder-article.jpg'}
@@ -36,38 +121,73 @@ const FeaturedPost = ({ post }) => {
         />
       </div>
       <div className="relative z-10 p-8 md:p-12 lg:p-16 flex flex-col items-start">
-        <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-4">
+        <motion.span 
+          className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           {post.category_name || 'Featured'}
-        </span>
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-3xl">
+        </motion.span>
+        <motion.h1 
+          className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-3xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
           {post.title}
-        </h1>
-        <p className="text-white/80 text-lg mb-6 max-w-2xl">
+        </motion.h1>
+        <motion.p 
+          className="text-white/80 text-lg mb-6 max-w-2xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
           {post.excerpt || ''}
-        </p>
+        </motion.p>
         <div className="flex items-center mb-6">
-          <div>
-            <div className="text-white font-medium">{post.author_name || 'My Drive Academy'}</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
             <div className="text-white/70 text-sm">
               {post.published_date ? new Date(post.published_date).toLocaleDateString() : ''}
             </div>
-          </div>
+          </motion.div>
         </div>
-        <Link 
-          href={`/knowledge-hub/blog/${post.slug}`}
-          className="bg-emerald-600 text-gray-100 hover:bg-emerald-800 hover:text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
         >
-          Read Article
-        </Link>
+          <Link 
+            href={`/knowledge-hub/blog/${post.slug}`}
+            className="bg-emerald-600 text-gray-100 hover:bg-emerald-800 hover:text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300"
+          >
+            <motion.span 
+              whileHover={{ x: 5 }} 
+              className="inline-block"
+            >
+              Read Article
+            </motion.span>
+          </Link>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // Blog post card component
-const BlogPostCard = ({ post }) => {
+const BlogPostCard: React.FC<BlogPostCardProps> = ({ post }) => {
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+    <motion.div 
+      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 h-full flex flex-col"
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -5 }}
+    >
       <div className="relative h-52 overflow-hidden">
         <img 
           src={post.featured_image_url || '/images/placeholder-article.jpg'} 
@@ -86,50 +206,85 @@ const BlogPostCard = ({ post }) => {
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt || ''}</p>
         
         <div className="mt-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="text-xs text-gray-700">{post.author_name || 'My Drive Academy'}</span>
-          </div>
           <span className="text-xs text-gray-500">
             {post.published_date ? new Date(post.published_date).toLocaleDateString() : ''}
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // Newsletter subscription component
-const NewsletterSubscribe = () => {
+const NewsletterSubscribe: React.FC = () => {
+  const [ref, inView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
+  
   return (
-    <div className="bg-gray-800 rounded-lg p-8 mt-12">
-      <h3 className="text-2xl font-bold text-white mb-2">Stay Updated</h3>
-      <p className="text-gray-300 mb-6">Get the latest driving tips and resources delivered to your inbox.</p>
+    <motion.div 
+      ref={ref}
+      className="bg-gray-800 rounded-lg p-8 mt-12"
+      variants={fadeInVariants}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+    >
+      <motion.h3 
+        className="text-2xl font-bold text-white mb-2"
+        initial={{ opacity: 0, y: -10 }}
+        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
+        transition={{ delay: 0.2 }}
+      >
+        Stay Updated
+      </motion.h3>
+      <motion.p 
+        className="text-gray-300 mb-6"
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        Get the latest driving tips and resources delivered to your inbox.
+      </motion.p>
       
-      <form className="flex flex-col sm:flex-row gap-3">
+      <motion.form 
+        className="flex flex-col sm:flex-row gap-3"
+        initial={{ opacity: 0, y: 20 }}
+        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ delay: 0.4 }}
+      >
         <input 
           type="email" 
           placeholder="Your email address" 
           className="flex-grow px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
         />
-        <button 
+        <motion.button 
           type="submit" 
           className="bg-emerald-600 hover:bg-emerald-800 text-white px-6 py-3 rounded-lg font-bold transition-colors duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Subscribe
-        </button>
-      </form>
-    </div>
+        </motion.button>
+      </motion.form>
+    </motion.div>
   );
 };
 
 // Main blog page component
 export default function BlogListPage() {
-  const [posts, setPosts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [filteredPosts, setFilteredPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Reference for blog posts grid for scroll animations
+  const [postsRef, postsInView] = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
 
   // Fetch posts and categories
   useEffect(() => {
@@ -205,10 +360,15 @@ export default function BlogListPage() {
     return (
       <div className="bg-gray-50 min-h-screen pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-red-50 border border-red-200 text-red-700 p-8 rounded-lg text-center">
+          <motion.div 
+            className="bg-red-50 border border-red-200 text-red-700 p-8 rounded-lg text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <h2 className="text-2xl font-bold mb-4">Error</h2>
             <p>{error}</p>
-          </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -226,7 +386,12 @@ export default function BlogListPage() {
       {/* Main content area */}
       <div className="max-w-7xl mx-auto px-4">
         {/* Category filters */}
-        <div className="mb-8">
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Categories</h2>
           <div className="flex flex-wrap">
             {categories.map(category => (
@@ -238,23 +403,35 @@ export default function BlogListPage() {
               />
             ))}
           </div>
-        </div>
+        </motion.div>
         
         {/* Blog posts grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayPosts.map(post => (
-            <Link href={`/knowledge-hub/blog/${post.slug}`} key={post.id}>
-              <BlogPostCard post={post} />
-            </Link>
-          ))}
+        <div ref={postsRef}>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate={postsInView ? "visible" : "hidden"}
+          >
+            {displayPosts.map(post => (
+              <Link href={`/knowledge-hub/blog/${post.slug}`} key={post.id} className="block h-full">
+                <BlogPostCard post={post} />
+              </Link>
+            ))}
+          </motion.div>
         </div>
         
         {/* Empty state */}
         {displayPosts.length === 0 && (
-          <div className="text-center py-16">
+          <motion.div 
+            className="text-center py-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <h3 className="text-xl font-medium text-gray-800 mb-2">No posts found</h3>
             <p className="text-gray-600">Try selecting a different category</p>
-          </div>
+          </motion.div>
         )}
         
         {/* Newsletter subscription */}

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import InfiniteBlogSlider from './InfiniteBlogSlider';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -10,6 +11,38 @@ const HomeBlogSection = () => {
   const [blogPosts, setBlogPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+  
+  // Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Activate animation when section is at least 10% visible
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // Reset state when out of view to repeat animation on next scroll
+          setIsVisible(false);
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1 // 10% visibility
+      }
+    );
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+    
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
@@ -59,8 +92,13 @@ const HomeBlogSection = () => {
   // Show loading state
   if (loading) {
     return (
-      <div className="w-full bg-gray-50 py-16 px-4 text-center">
-        <div className="animate-pulse">
+      <div className="w-full bg-gray-50 py-16 px-4 text-center" ref={sectionRef}>
+        <motion.div 
+          className="animate-pulse"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="h-8 bg-gray-200 max-w-md mx-auto rounded mb-4"></div>
           <div className="h-4 bg-gray-200 max-w-sm mx-auto rounded mb-12"></div>
           <div className="flex justify-center gap-6">
@@ -68,7 +106,7 @@ const HomeBlogSection = () => {
               <div key={i} className="w-72 h-80 bg-gray-200 rounded"></div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -76,13 +114,32 @@ const HomeBlogSection = () => {
   // Show error message
   if (error) {
     return (
-      <div className="w-full bg-gray-50 py-16 px-4 text-center text-red-500">
+      <motion.div 
+        className="w-full bg-gray-50 py-16 px-4 text-center text-red-500"
+        ref={sectionRef}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {error}
-      </div>
+      </motion.div>
     );
   }
 
-  return <InfiniteBlogSlider posts={blogPosts} />;
+  return (
+    <div ref={sectionRef}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ 
+          duration: 0.6,
+          ease: "easeOut"
+        }}
+      >
+        <InfiniteBlogSlider posts={blogPosts} />
+      </motion.div>
+    </div>
+  );
 };
 
 // Placeholder posts in case the API fails

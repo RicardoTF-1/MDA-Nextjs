@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { fetchSliderImages } from '../../lib/api'
 import StatsSection from './StatsSection'
 
@@ -106,7 +107,12 @@ export default function HeroSlider() {
             {/* Hero Content */}
             <div className="absolute inset-0 flex items-center">
               <div className="container mx-auto px-4">
-                <div className="max-w-3xl text-white">
+                <motion.div 
+                  className="max-w-3xl text-white"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
                   <h1 className="text-5xl md:text-6xl font-bold mb-6">
                     {slide.title || "Master the road. Drive with confidence."}
                   </h1>
@@ -127,7 +133,7 @@ export default function HeroSlider() {
                       View Courses
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -135,12 +141,22 @@ export default function HeroSlider() {
       })}
 
       {/* Stats Section */}
-      <div className="absolute bottom-0 right-0 py-8 px-4 md:py-12 md:px-6 z-10">
+      <motion.div 
+        className="absolute bottom-0 right-0 py-8 px-4 md:py-12 md:px-6 z-10"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
         <StatsSection />
-      </div>
+      </motion.div>
 
       {/* Navigation dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex justify-center space-x-3 z-10">
+      <motion.div 
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex justify-center space-x-3 z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+      >
         {images.map((_, index) => (
           <button
             key={index}
@@ -151,7 +167,7 @@ export default function HeroSlider() {
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
-      </div>
+      </motion.div>
     </div>
   )
 }

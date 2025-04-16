@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { fetchLocations, fetchCourseLocationsWithSchedules } from '/lib/api'
+import { motion } from 'framer-motion'
 
 // Interfaces basadas en los modelos actualizados
 interface ClassSchedule {
@@ -52,6 +53,38 @@ export default function UpcomingClasses(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [activeLocationId, setActiveLocationId] = useState<number | null>(null);
   const [debug, setDebug] = useState<string>('');
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Activate animation when section is at least 10% visible
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // Reset state when out of view to repeat animation on next scroll
+          setIsVisible(false);
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1 // 10% visibility
+      }
+    );
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+    
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   // Cargar datos
   useEffect(() => {
@@ -148,27 +181,88 @@ export default function UpcomingClasses(): JSX.Element {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const titleVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { y: 50, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
   // Estado de carga
   if (loading) {
     return (
-      <div className="p-4 text-center">
-        <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-emerald-500 mr-2"></div>
-        <span>Cargando horarios...</span>
+      <div className="p-4 text-center" ref={sectionRef}>
+        <motion.div 
+          className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-emerald-500 mr-2"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        ></motion.div>
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          Cargando horarios...
+        </motion.span>
       </div>
     );
   }
   
   // Estado de error
   if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>;
+    return (
+      <motion.div 
+        className="p-4 text-center text-red-500" 
+        ref={sectionRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {error}
+      </motion.div>
+    );
   }
   
   // No hay ubicaciones disponibles
   if (!Array.isArray(locations) || locations.length === 0) {
     return (
-      <div className="p-4 text-center">
+      <motion.div 
+        className="p-4 text-center" 
+        ref={sectionRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         No hay horarios de clases disponibles actualmente.
-      </div>
+      </motion.div>
     );
   }
 
@@ -177,28 +271,54 @@ export default function UpcomingClasses(): JSX.Element {
   const activeCourseLocations = courseLocations.get(activeLocation.id) || [];
   
   return (
-    <div className="py-8 px-4 bg-white">
+    <div className="py-8 px-4 bg-white" ref={sectionRef}>
       <div className="max-w-6xl mx-auto">
         {/* Badge y título */}
-        <div className="text-center mb-8">
-          <div className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm font-medium mb-2">
+        <motion.div 
+          className="text-center mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
+          <motion.div 
+            className="inline-block px-4 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm font-medium mb-2"
+            variants={titleVariants}
+          >
             Class Schedule
-          </div>
-          <h2 className="text-3xl text-gray-700 font-bold">Upcoming Classes</h2>
-          <p className="mt-2 text-gray-600">
+          </motion.div>
+          <motion.h2 
+            className="text-3xl text-gray-700 font-bold"
+            variants={titleVariants}
+          >
+            Upcoming Classes
+          </motion.h2>
+          <motion.p 
+            className="mt-2 text-gray-600"
+            variants={titleVariants}
+          >
             Find classes at our locations across Chicago that fit your schedule.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
         
-        <h3 className="text-xl font-bold text-gray-700 mb-4">
+        <motion.h3 
+          className="text-xl font-bold text-gray-700 mb-4"
+          variants={titleVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
           UPCOMING CLASS SCHEDULES
-        </h3>
+        </motion.h3>
         
         {/* Pestañas de ubicaciones */}
-        <div className="mb-4">
+        <motion.div 
+          className="mb-4"
+          variants={titleVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
           <div className="flex rounded-lg overflow-hidden">
-            {locations.map(location => (
-              <button 
+            {locations.map((location, index) => (
+              <motion.button 
                 key={location.id} 
                 className={`py-2 px-6 text-center text-sm transition-colors duration-200 flex-1 ${
                   activeLocationId === location.id 
@@ -206,15 +326,24 @@ export default function UpcomingClasses(): JSX.Element {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
                 onClick={() => handleLocationChange(location.id)}
+                variants={titleVariants}
+                custom={index}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
               >
                 {location.name}
-              </button>
+              </motion.button>
             ))}
           </div>
-        </div>
+        </motion.div>
         
         {/* Información de la ubicación */}
-        <div className="bg-gray-100 rounded-lg p-4 mb-6">
+        <motion.div 
+          className="bg-gray-100 rounded-lg p-4 mb-6"
+          variants={titleVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
           <div className="flex items-center text-gray-700">
             <div className="text-emerald-500 mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -231,13 +360,23 @@ export default function UpcomingClasses(): JSX.Element {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
         
         {/* Lista de clases */}
         {activeCourseLocations.length > 0 ? (
-          <div>
-            {activeCourseLocations.map(courseLocation => (
-              <div key={courseLocation.id} className="border-b py-6">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
+          >
+            {activeCourseLocations.map((courseLocation, index) => (
+              <motion.div 
+                key={courseLocation.id} 
+                className="border-b py-6"
+                variants={cardVariants}
+                custom={index}
+                whileHover={{ y: -3, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+              >
                 <div className="flex flex-col sm:flex-row justify-between items-start">
                   <div>
                     <h4 className="font-bold text-lg text-gray-800">
@@ -263,32 +402,49 @@ export default function UpcomingClasses(): JSX.Element {
                         {courseLocation.schedule_spots_left} spots left
                       </span>
                     )}
-                    <Link
-                      href={courseLocation.registration_link || "/contact"}
-                      className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                    >
-                      Register Now
-                    </Link>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link
+                        href={courseLocation.registration_link || "/contact"}
+                        className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                      >
+                        Register Now
+                      </Link>
+                    </motion.div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
+          <motion.div 
+            className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg"
+            variants={titleVariants}
+            initial="hidden"
+            animate={isVisible ? "visible" : "hidden"}
+          >
             There are no classes scheduled for this location.
-          </div>
+          </motion.div>
         )}
         
         {/* Botón para ver todas las clases */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/courses"
-            className="inline-block bg-emerald-500 text-white hover:bg-emerald-700 hover:text-white font-medium py-2 px-6 rounded-md transition-colors"
+        <motion.div 
+          className="mt-8 text-center"
+          variants={titleVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+        >
+          <motion.div 
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }}
           >
-            View All Classes
-          </Link>
-        </div>
+            <Link
+              href="/courses"
+              className="inline-block bg-emerald-500 text-white hover:bg-emerald-700 hover:text-white font-medium py-2 px-6 rounded-md transition-colors"
+            >
+              View All Classes
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
       
       {/* Información de debugging - solo visible en desarrollo */}
