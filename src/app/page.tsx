@@ -13,7 +13,7 @@ import CourseFinder from '../../components/courses/CourseFinder'
 import HomeBlogSection from '../../components/home/HomeBlogSection'
 import AdultPrograms from '../../components/home/AdultPrograms' // Add this import
 import AdultProgramsSlider from '../../components/home/AdultProgramsSlider';
-
+import VoiceAssistant from '../../components/home/VoiceAssistant';
 
 export default function Home() {
   return (
@@ -30,6 +30,7 @@ export default function Home() {
       <HomeBlogSection/> {/* Animated */}
       <Testimonials /> {/* Animated */}
       {/* <LocationMap /> */}
+      <VoiceAssistant /> {/* Animated */}
     </>
   )
 }
