@@ -86,6 +86,7 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Function to navigate to the next slide
   const nextSlide = (): void => {
@@ -102,20 +103,35 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Initial animation state
+  useEffect(() => {
+    // Set the initial animation state
+    controls.set("hidden");
+    
+    // Mark the component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
+
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+    
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Schedule the animation for the next frame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+      }
+    };
+    
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -126,14 +142,17 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Adult Programs Slides content
   const slides: SlideProps[] = [

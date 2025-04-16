@@ -103,6 +103,7 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Functions for slide navigation
   const nextSlide = (): void => {
@@ -117,20 +118,36 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
+
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // We don't need to set it back to hidden when not intersecting
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -141,14 +158,17 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Advanced Driving Skills Slides content
   const advancedSlides: SlideProps[] = [

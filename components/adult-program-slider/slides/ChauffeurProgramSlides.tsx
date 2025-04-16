@@ -104,6 +104,7 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Functions for slide navigation
   const nextSlide = (): void => {
@@ -118,20 +119,36 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
+
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // We don't need to set it back to hidden when not intersecting
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -142,14 +159,17 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Chauffeur Training Programs Slides content
   const chauffeurSlides: SlideProps[] = [
@@ -187,7 +207,7 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
               <ChauffeurProgramCard 
                 title="Become a Licensed Livery (Restricted) Chauffeur"
                 subtitle="One-Day Program"
-                price="120"
+                price={120}
                 points={[
                   "For professional drivers in luxury transport services",
                   "This license allows the licensee to drive limousines and Uber Black",
@@ -201,7 +221,7 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
               <ChauffeurProgramCard 
                 title="Become a Licensed Taxi Chauffeur"
                 subtitle="Four-Day Program"
-                price="250"
+                price={250}
                 points={[
                   "This license allows the licensee to drive taxicabs, limousines, and Uber Black",
                   "For Professional Taxi and Rideshare Drivers Our Licensed Taxi Chauffeur Training focuses on city navigation, passenger safety, traffic laws, and efficient route planning to ensure you deliver reliable, professional service.",
