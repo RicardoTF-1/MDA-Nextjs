@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { GraduationCap } from 'lucide-react';
 import { motion, useAnimation, Variants } from 'framer-motion';
 
@@ -117,19 +117,39 @@ const linkVariants: Variants = {
 const InstructorProgramContent: React.FC<InstructorProgramContentProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
+
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
 
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // No need to start "hidden" animation when element leaves viewport
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -140,7 +160,7 @@ const InstructorProgramContent: React.FC<InstructorProgramContentProps> = () => 
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   return (
     <motion.div 

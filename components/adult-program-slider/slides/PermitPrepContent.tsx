@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { motion, useAnimation, Variants } from 'framer-motion';
 import PermitPrepCard from '../cards/PermitPrepCard';
@@ -107,19 +107,36 @@ const buttonVariants: Variants = {
 const PermitPrepContent: React.FC<PermitPrepContentProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [observerInitialized, setObserverInitialized] = useState(false);
+
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
 
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      }
+      // We don't need to set it back to hidden when not intersecting
+      // This avoids the error and creates a smoother user experience
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -130,7 +147,7 @@ const PermitPrepContent: React.FC<PermitPrepContentProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   return (
     <motion.div 

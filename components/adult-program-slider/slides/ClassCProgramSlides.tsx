@@ -103,6 +103,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Functions for slide navigation
   const nextSlide = (): void => {
@@ -117,20 +118,36 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
+
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // We don't need to set it back to hidden when not intersecting
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -141,14 +158,17 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Class C Programs Slides content
   const classCSlides: SlideProps[] = [
@@ -236,7 +256,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               <ClassCProgramCard 
                 title="Written Exam Prep for License C"
                 subtitle=""
-                price="130"
+                price={130}
                 points={[
                   "A comprehensive preparation for the Illinois Class C CDL written exams",
                   "Provides thorough understanding of CDL regulations, and a solid foundation for safe commercial driving."
@@ -249,7 +269,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               <ClassCProgramCard 
                 title="2 Hr Behind the Wheel + Road Test"
                 subtitle=""
-                price="410"
+                price={410}
                 bestSeller={true}
                 points={[
                   "Ideal for drivers with some experience who need a quick refresher before the test.",
@@ -264,7 +284,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               <ClassCProgramCard 
                 title="1 Hr Behind the Wheel + Written Exam Prep + Road Test"
                 subtitle=""
-                price="460"
+                price={460}
                 bestSeller={true}
                 points={[
                   "Ideal for those seeking a fast, comprehensive Class C CDL prep",

@@ -115,7 +115,7 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Functions for slide navigation
   const nextSlide = (): void => {
@@ -130,33 +130,36 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
-  // Set component as mounted
+  // Initialize animation state
   useEffect(() => {
-    setIsMounted(true);
-    return () => {
-      setIsMounted(false);
-    };
-  }, []);
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
 
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    if (!isMounted) return;
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          // Only start animation if component is mounted
-          if (isMounted) {
-            controls.start("hidden");
-          }
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // We don't need to set it back to hidden when not intersecting
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -167,14 +170,17 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls, isMounted]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible && isMounted) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible, isMounted]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Teen Programs Slides content
   const teenSlides: SlideProps[] = [

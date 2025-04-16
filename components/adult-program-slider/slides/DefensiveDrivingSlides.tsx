@@ -110,6 +110,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [observerInitialized, setObserverInitialized] = useState(false);
 
   // Functions for slide navigation
   const nextSlide = (): void => {
@@ -124,20 +125,36 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Initialize animation state
+  useEffect(() => {
+    // Set the initial animation state without triggering animations
+    controls.set("hidden");
+    
+    // Mark component as ready for the observer
+    setObserverInitialized(true);
+  }, [controls]);
+
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
+    // Only set up the observer after the initial animation state is set
+    if (!observerInitialized) return;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+      const [entry] = entries;
+      
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        // Use requestAnimationFrame to ensure component is mounted
+        requestAnimationFrame(() => {
           controls.start("visible");
-        } else {
-          setIsVisible(false);
-          controls.start("hidden");
-        }
-      },
-      { threshold: 0.1 } // 10% visibility threshold
-    );
+        });
+      } else {
+        setIsVisible(false);
+        // We don't need to set it back to hidden when not intersecting
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
     if (containerRef.current) {
       observer.observe(containerRef.current);
@@ -148,14 +165,17 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, [controls, observerInitialized]);
 
   // Reset animation when slide changes
   useEffect(() => {
-    if (isVisible) {
-      controls.start("visible");
+    if (isVisible && observerInitialized) {
+      // Use requestAnimationFrame to ensure component is mounted
+      requestAnimationFrame(() => {
+        controls.start("visible");
+      });
     }
-  }, [currentSlide, controls, isVisible]);
+  }, [currentSlide, controls, isVisible, observerInitialized]);
 
   // Defensive Driving Slides content
   const defensiveSlides: SlideProps[] = [
@@ -202,7 +222,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
               <DefensiveProgramCard 
                 title="Remedial Course"
                 subtitle="License Reinstatement"
-                price="100"
+                price={100}
                 points={[
                   "In this 4-hour class, drivers with a suspended license due to traffic violations or court orders.",
                   "Improve Your Driving, Reduce Risks, and Meet Legal Requirements."
@@ -215,7 +235,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
               <DefensiveProgramCard 
                 title="Defensive Driving Course"
                 subtitle="Dismiss Tickets, Lower Insurance, Drive Safe"
-                price="95"
+                price={95}
                 points={[
                   "In this 4-hour class, the Defensive Driving Course may qualify you for up to 10% discounts on car insurance, as well as workers' compensation discounts for companies with fleet vehicles.",
                   "Prevent fines or points, improve driving skills, and qualify for insurance discounts."
@@ -228,7 +248,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
               <DefensiveProgramCard 
                 title="Alive at 25"
                 subtitle="Smart Choices for Young Drivers"
-                price="45"
+                price={45}
                 points={[
                   "For drivers aged 15-24 cited for traffic violations or required by courts, schools, or employers.",
                   "The Alive at 25 may qualify you for up to 10% discounts on car insurance, as well as workers' compensation discounts for companies with fleet vehicles."
