@@ -1,7 +1,6 @@
 // app/contact/page.js
 import { Suspense } from 'react';
 import ContactForm from '@/components/contact/ContactForm';
-import ContactInfoBar from '@/components/contact/ContactInfoBar';
 import VerticalContactInfoBar from '@/components/contact/ContactInfoBar';
 
 export const metadata = {
