@@ -1,5 +1,4 @@
-// components/adult-program-slider/common/BottomLink.tsx
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion, useAnimation, Variants } from 'framer-motion';
 import { BottomLinkProps } from '../types';
 
@@ -69,16 +68,26 @@ const BottomLink: React.FC<BottomLinkProps> = ({
 }) => {
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
+  // Set component as mounted
+  useEffect(() => {
+    setIsMounted(true);
+    // Initially set to hidden (this is safe inside useEffect)
+    controls.set("hidden");
+    
+    return () => {
+      setIsMounted(false);
+    };
+  }, [controls]);
 
   // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          controls.start("visible");
-        } else {
-          controls.start("hidden");
-        }
+        // Just update the visibility state here
+        setIsVisible(entry.isIntersecting);
       },
       { threshold: 0.1 } // 10% visibility threshold
     );
@@ -92,25 +101,35 @@ const BottomLink: React.FC<BottomLinkProps> = ({
         observer.unobserve(containerRef.current);
       }
     };
-  }, [controls]);
+  }, []);
+
+  // Handle animation controls in a separate effect
+  useEffect(() => {
+    if (isMounted) {
+      if (isVisible) {
+        controls.start("visible");
+      } else {
+        controls.start("hidden");
+      }
+    }
+  }, [isVisible, controls, isMounted]);
 
   return (
     <motion.div 
-      className="text-center mb-8 bg-gray-50 rounded-xl p-6 shadow-sm"
+      className="text-center mb-4 sm:mb-6 bg-gray-50 rounded-xl p-4 sm:p-6 shadow-sm"
       ref={containerRef}
-      initial="hidden"
-      animate={controls}
       variants={containerVariants}
+      animate={controls}
     >
       <motion.div 
-        className="text-lg font-bold text-gray-700 mb-4"
+        className="text-base sm:text-lg font-bold text-gray-700 mb-2 sm:mb-4"
         variants={itemVariants}
       >
         DSS Page with Price
       </motion.div>
       <motion.a 
         href={viewAllLink} 
-        className="text-emerald-600 hover:text-emerald-700 font-medium underline"
+        className="text-emerald-600 hover:text-emerald-700 font-medium underline text-sm sm:text-base"
         variants={linkVariants}
         whileHover="hover"
         whileTap={{ scale: 0.95 }}
