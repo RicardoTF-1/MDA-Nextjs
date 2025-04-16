@@ -47,7 +47,7 @@ interface Course {
   locations?: LocationItem[];
 }
 
-export default function CourseDetailPage(): JSX.Element {
+export default function CourseDetailPage(): React.ReactElement {
   const { slug, courseSlug } = useParams() as { slug: string; courseSlug: string };
   const [course, setCourse] = useState<Course | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationItem | null>(null);

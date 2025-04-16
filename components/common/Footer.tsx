@@ -9,7 +9,7 @@ interface FooterProps {
   };
 }
 
-export default function Footer({ siteSettings }: FooterProps): JSX.Element {
+export default function Footer({ siteSettings }: FooterProps): React.ReactElement {
   const currentYear = new Date().getFullYear();
   const [copyright, setCopyright] = useState<string>(`© ${currentYear} My Drive Academy. All rights reserved.`);
 

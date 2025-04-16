@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { fetchSiteSettings } from '../../lib/api'
 
 export default function Header() {
@@ -15,8 +14,9 @@ export default function Header() {
   })
   const [loading, setLoading] = useState(true)
   const pathname = usePathname()
+  const router = useRouter()
   
-  // Efecto para cargar configuraciones del sitio
+  // Effect for loading site settings
   useEffect(() => {
     const loadSiteSettings = async () => {
       try {
@@ -32,7 +32,7 @@ export default function Header() {
     loadSiteSettings()
   }, [])
 
-  // Efecto separado para manejar el scroll
+  // Effect for handling scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
@@ -42,30 +42,40 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Determinar si estamos en la página principal
+  // Effect to close menu when pathname changes (page navigation)
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [pathname])
+  
+  // Determine if we're on the home page
   const isHomePage = pathname === '/'
   
-  // Determinar si estamos en la página de knowledge-hub
+  // Determine if we're on the knowledge-hub page
   const isKnowledgeHub = pathname === '/knowledge-hub'
   
-  // Clases dinámicas del header
+  // Dynamic header classes
   const headerClass = `${isHomePage ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 transition-all ${
     isScrolled || isKnowledgeHub ? 'bg-black/30 backdrop-blur-s' : 'bg-transparent'
   }`
   
-  // Aplicar un estilo global para ajustar el margen superior solo en la página principal
+  // Apply global style to adjust top margin only on home page
   useEffect(() => {
-    // Solo afecta a elementos dentro del layout principal, no al header
+    // Only affects elements within main layout, not the header
     if (isHomePage) {
       document.body.style.paddingTop = '0px';
     } else {
-      document.body.style.paddingTop = '0px'; // Restablece el padding en otras páginas
+      document.body.style.paddingTop = '0px'; // Reset padding on other pages
     }
     
     return () => {
-      document.body.style.paddingTop = '0px'; // Limpia al desmontar
+      document.body.style.paddingTop = '0px'; // Clean up on unmount
     }
   }, [isHomePage]);
+
+  // Function to handle menu links with closure
+  const handleNavLinkClick = () => {
+    setIsMenuOpen(false);
+  };
   
   return (
     <header className={headerClass}>
@@ -122,6 +132,8 @@ export default function Header() {
           <button 
             className="md:hidden text-white"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -138,21 +150,21 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 COURSES
               </Link>
-              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 LOCATIONS
               </Link>
-              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 KNOWLEDGE HUB
               </Link>
-              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 ABOUT
               </Link>
             </nav>
             <div className="flex flex-col space-y-2 mt-4">
-              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center">
+              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center" onClick={handleNavLinkClick}>
                 Contact Us
               </Link>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { fetchLocations } from '/lib/api';
+import { fetchLocations } from '@/lib/api';
 import { motion } from 'framer-motion';
 
 interface Location {
@@ -84,7 +84,7 @@ const LocationCard = ({
   );
 };
 
-export default function LocationFinder(): JSX.Element {
+export default function LocationFinder(): React.ReactElement {
   // State declarations
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -114,11 +115,16 @@ const FeaturedPost: React.FC<FeaturedPostProps> = ({ post }) => {
       animate={inView ? "visible" : "hidden"}
     >
       <div className="absolute inset-0 opacity-80">
-        <img
-          src={post.featured_image_url || '/images/placeholder-article.jpg'}
-          alt={post.title}
-          className="w-full h-full object-cover"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            src={post.featured_image_url || '/images/placeholder-article.jpg'}
+            alt={post.title}
+            className="object-cover"
+            fill
+            sizes="100vw"
+            priority
+          />
+        </div>
       </div>
       <div className="relative z-10 p-8 md:p-12 lg:p-16 flex flex-col items-start">
         <motion.span 
@@ -189,11 +195,15 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post }) => {
       whileHover={{ y: -5 }}
     >
       <div className="relative h-52 overflow-hidden">
-        <img 
-          src={post.featured_image_url || '/images/placeholder-article.jpg'} 
-          alt={post.title}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-        />
+        <div className="relative w-full h-full">
+          <Image 
+            src={post.featured_image_url || '/images/placeholder-article.jpg'} 
+            alt={post.title}
+            className="object-cover transition-transform duration-500 hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
         {post.category_name && (
           <span className="absolute top-4 right-4 bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded">
             {post.category_name}

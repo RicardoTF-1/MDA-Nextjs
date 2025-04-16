@@ -1,8 +1,27 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { submitContactForm } from '@/lib/api';
+
+// Define interfaces for TypeScript
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  message?: string;
+  [key: string]: string | undefined;
+}
+
+type SubmitStatus = 'success' | 'error' | null;
 
 // Animation variants
 const formControlVariants = {
@@ -24,7 +43,7 @@ const buttonVariants = {
 }
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     phone: '',
@@ -32,22 +51,22 @@ export default function ContactForm() {
     message: ''
   });
   
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>(null);
   
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error when field is edited
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
   
-  const validate = () => {
-    const newErrors = {};
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
     
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
@@ -59,7 +78,7 @@ export default function ContactForm() {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validate()) return;
@@ -93,7 +112,7 @@ export default function ContactForm() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg"
         >
-          Thank you for your message! We'll get back to you soon.
+          Thank you for your message! We&apos;ll get back to you soon.
         </motion.div>
       )}
       
@@ -162,7 +181,7 @@ export default function ContactForm() {
         <textarea
           id="message"
           name="message"
-          rows="4"
+          rows={4}
           placeholder="Your message"
           value={formData.message}
           onChange={handleChange}

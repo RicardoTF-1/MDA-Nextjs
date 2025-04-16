@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -12,17 +13,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 // Animation variants
 const fadeInUpVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6
-    }
-  }
-};
-
-const fadeInDownVariants = {
-  hidden: { opacity: 0, y: -20 },
   visible: {
     opacity: 1,
     y: 0,
@@ -70,10 +60,6 @@ interface BlogPost {
 
 interface RelatedPostProps {
   post: BlogPost;
-}
-
-interface AuthorBioProps {
-  author: string;
 }
 
 interface TableOfContentsProps {
@@ -202,7 +188,6 @@ export default function BlogPostPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Various InView references for different sections
-  const [heroRef, heroInView] = useInView({ threshold: 0.1, triggerOnce: false });
   const [headerRef, headerInView] = useInView({ threshold: 0.1, triggerOnce: false });
   const [contentRef, contentInView] = useInView({ threshold: 0.1, triggerOnce: false });
   const [relatedRef, relatedInView] = useInView({ threshold: 0.1, triggerOnce: false });
@@ -312,7 +297,7 @@ export default function BlogPostPage() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-2xl font-bold mb-4">Article Not Found</h1>
-              <p>The article you're looking for doesn't exist or has been removed.</p>
+              <p>The article you&apos;re looking for doesn&apos;t exist or has been removed.</p>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -333,17 +318,21 @@ export default function BlogPostPage() {
     <div className="bg-white min-h-screen">
       {/* Hero section with post image */}
       <motion.div 
-        ref={heroRef}
         className="h-[40vh] md:h-[60vh] relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <img
-          src={post.featured_image_url || '/images/placeholder-article.jpg'}
-          alt={post.title}
-          className="w-full h-full object-cover"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            src={post.featured_image_url || '/images/placeholder-article.jpg'}
+            alt={post.title}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       </motion.div>
       

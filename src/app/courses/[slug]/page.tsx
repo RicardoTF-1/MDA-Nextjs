@@ -192,7 +192,7 @@ const SubcategorySection: React.FC<SubcategorySectionProps> = ({ subcategory, ca
   );
 };
 
-export default function CourseCategoryPage(): JSX.Element {
+export default function CourseCategoryPage(): React.ReactElement {
   const { slug } = useParams() as { slug: string };
   const [categoryData, setCategoryData] = useState<CategoryData | null>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<Subcategory | null>(null);

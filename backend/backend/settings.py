@@ -149,9 +149,11 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # Next.js development server
+    'http://localhost:3000',
+    "http://127.0.0.1:3000", # Next.js development server
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_CREDENTIALS = True

@@ -2,15 +2,24 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { fetchCourseCategories } from '/lib/api';
+import { fetchCourseCategories } from '@/lib/api';
 import { motion } from 'framer-motion';
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  icon_svg?: string;
+  order?: number;
+}
+
 export default function CategorySection() {
-  const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
   
   useEffect(() => {
     const loadCategories = async () => {
@@ -30,7 +39,6 @@ export default function CategorySection() {
   }, []);
 
   // Intersection Observer for scroll-based animations
-  // Similar to the AnimatedHeroSection you shared
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -49,13 +57,15 @@ export default function CategorySection() {
       }
     );
     
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    const currentRef = sectionRef.current;
+    
+    if (currentRef) {
+      observer.observe(currentRef);
     }
     
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
@@ -171,7 +181,7 @@ export default function CategorySection() {
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  <span dangerouslySetInnerHTML={{ __html: category.icon_svg }} />
+                  <span dangerouslySetInnerHTML={{ __html: category.icon_svg || '' }} />
                 </motion.div>
                 
                 {/* Green separator line */}

@@ -94,7 +94,7 @@ const DrivingAcademy: React.FC<DrivingAcademyProps> = () => {
   }, [controls]);
 
   // Render the content based on the active tab
-  const renderContent = (): JSX.Element => {
+  const renderContent = (): React.ReactElement => {
     switch (activeTab) {
       case 'adult-programs':
         return <AdultProgramSlides />;
