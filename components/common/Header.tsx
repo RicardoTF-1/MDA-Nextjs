@@ -1,24 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, MouseEvent } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { fetchSiteSettings } from '../../lib/api'
 
-export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [siteSettings, setSiteSettings] = useState({
+// Define interfaces for our data types
+interface SiteSettings {
+  site_name: string;
+  logo_url: string | null;
+}
+
+const Header = (): JSX.Element => {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const [isScrolled, setIsScrolled] = useState<boolean>(false)
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     site_name: 'My Drive Academy',
     logo_url: null
   })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
   const pathname = usePathname()
   
-  // Efecto para cargar configuraciones del sitio
+  // Effect to load site settings
   useEffect(() => {
-    const loadSiteSettings = async () => {
+    const loadSiteSettings = async (): Promise<void> => {
       try {
         const data = await fetchSiteSettings()
         setSiteSettings(data)
@@ -32,9 +37,9 @@ export default function Header() {
     loadSiteSettings()
   }, [])
 
-  // Efecto separado para manejar el scroll
+  // Separate effect to handle scroll
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       setIsScrolled(window.scrollY > 10)
     }
 
@@ -42,30 +47,55 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Determinar si estamos en la página principal
+  // Determine if we're on the home page
   const isHomePage = pathname === '/'
   
-  // Determinar si estamos en la página de knowledge-hub
+  // Determine if we're on the knowledge-hub page
   const isKnowledgeHub = pathname === '/knowledge-hub'
   
-  // Clases dinámicas del header
+  // Dynamic header classes
   const headerClass = `${isHomePage ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 transition-all ${
     isScrolled || isKnowledgeHub ? 'bg-black/30 backdrop-blur-s' : 'bg-transparent'
   }`
   
-  // Aplicar un estilo global para ajustar el margen superior solo en la página principal
+  // Apply global style to adjust top margin only on home page
   useEffect(() => {
-    // Solo afecta a elementos dentro del layout principal, no al header
+    // Only affects elements in the main layout, not the header
     if (isHomePage) {
       document.body.style.paddingTop = '0px';
     } else {
-      document.body.style.paddingTop = '0px'; // Restablece el padding en otras páginas
+      document.body.style.paddingTop = '0px'; // Reset padding on other pages
     }
     
     return () => {
-      document.body.style.paddingTop = '0px'; // Limpia al desmontar
+      document.body.style.paddingTop = '0px'; // Cleanup on unmount
     }
   }, [isHomePage]);
+  
+  // Handler for scrolling to a section
+  const scrollToSection = (sectionId: string) => (e: MouseEvent<HTMLAnchorElement>): void => {
+    // Only handle this specially on home page
+    if (isHomePage) {
+      e.preventDefault();
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // If section not found yet (might still be loading), scroll after a small delay
+        setTimeout(() => {
+          const delayedSection = document.getElementById(sectionId);
+          if (delayedSection) {
+            delayedSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 500);
+      }
+    }
+    // On other pages, let the link work normally
+  };
+  
+  const toggleMenu = (): void => {
+    setIsMenuOpen(!isMenuOpen);
+  };
   
   return (
     <header className={headerClass}>
@@ -92,9 +122,14 @@ export default function Header() {
           
           <div className="hidden md:flex items-center space-x-4">
             <nav className="flex space-x-6">
-              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
+              {/* Changed: Link now scrolls to adult-programs-section on homepage */}
+              <a 
+                href={isHomePage ? "#adult-programs-section" : "/courses"} 
+                onClick={scrollToSection("adult-programs-section")}
+                className="py-2 text-white hover:text-emerald-600 transition cursor-pointer"
+              >
                 COURSES
-              </Link>
+              </a>
               <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
                 LOCATIONS
               </Link>
@@ -121,7 +156,7 @@ export default function Header() {
           
           <button 
             className="md:hidden text-white"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={toggleMenu}
           >
             {isMenuOpen ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -138,9 +173,17 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
+              {/* Mobile menu link also updated */}
+              <a 
+                href={isHomePage ? "#adult-programs-section" : "/courses"} 
+                onClick={(e) => {
+                  scrollToSection("adult-programs-section")(e);
+                  setIsMenuOpen(false); // Close menu after clicking
+                }}
+                className="py-2 text-white hover:text-emerald-600 transition"
+              >
                 COURSES
-              </Link>
+              </a>
               <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
                 LOCATIONS
               </Link>
@@ -162,3 +205,5 @@ export default function Header() {
     </header>
   )
 }
+
+export default Header;
