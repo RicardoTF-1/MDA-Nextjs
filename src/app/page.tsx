@@ -26,7 +26,6 @@ export default function Home() {
       <LocationFinder /> {/* Animated */}
       <HomeBlogSection/> {/* Animated */}
       <Testimonials /> {/* Animated */}
-      {/* <LocationMap /> */}
       <VoiceAssistant /> {/* Animated */}
     </>
   )

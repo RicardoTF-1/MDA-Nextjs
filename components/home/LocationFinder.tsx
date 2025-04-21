@@ -437,34 +437,20 @@ export default function LocationFinder(): React.ReactElement {
               </motion.div>
             )}
 
-            {/* Simplified Embedded Google Map (using iframe instead of JS API) */}
+            {/* Fixed embedded Google Map with your provided iframe */}
             <motion.div 
               className="h-[400px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
               variants={mapVariants}
             >
-              {activeLocation ? (
-                <iframe
-                  className="w-full h-full border-0"
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&q=${encodeURIComponent(
-                    // Find the active location and build the address string
-                    (() => {
-                      const location = locations.find(loc => loc.id === activeLocation);
-                      return location 
-                        ? `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
-                        : 'Chicago, IL';
-                    })()
-                  )}`}
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
-                  <div className="text-center p-6">
-                    <p>Select a location to view on map</p>
-                  </div>
-                </div>
-              )}
+              <iframe 
+                src="https://www.google.com/maps/d/embed?mid=12s7xHe8F697wi2Wlm-dyIz9q9lpchY4&ehbc=2E312F" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </motion.div>
           </div>
         </motion.div>
@@ -472,3 +458,8 @@ export default function LocationFinder(): React.ReactElement {
     </div>
   );
 }
+
+
+
+
+
