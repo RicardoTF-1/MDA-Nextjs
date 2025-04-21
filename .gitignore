@@ -41,3 +41,12 @@ backend-env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+*.sqlite3
+

@@ -1,24 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, MouseEvent } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { fetchSiteSettings } from '../../lib/api'
 
-export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [siteSettings, setSiteSettings] = useState({
+// Define interfaces for our data types
+interface SiteSettings {
+  site_name: string;
+  logo_url: string | null;
+}
+
+const Header = (): React.ReactElement => {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+  const [isScrolled, setIsScrolled] = useState<boolean>(false)
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     site_name: 'My Drive Academy',
     logo_url: null
   })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
   const pathname = usePathname()
   const router = useRouter()
   
-  // Effect for loading site settings
+  // Effect to load site settings
   useEffect(() => {
-    const loadSiteSettings = async () => {
+    const loadSiteSettings = async (): Promise<void> => {
       try {
         const data = await fetchSiteSettings()
         setSiteSettings(data)
@@ -34,7 +40,7 @@ export default function Header() {
 
   // Effect for handling scroll
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       setIsScrolled(window.scrollY > 10)
     }
 
@@ -71,6 +77,31 @@ export default function Header() {
       document.body.style.paddingTop = '0px'; // Clean up on unmount
     }
   }, [isHomePage]);
+  
+  // Handler for scrolling to a section
+  const scrollToSection = (sectionId: string) => (e: MouseEvent<HTMLAnchorElement>): void => {
+    // Only handle this specially on home page
+    if (isHomePage) {
+      e.preventDefault();
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // If section not found yet (might still be loading), scroll after a small delay
+        setTimeout(() => {
+          const delayedSection = document.getElementById(sectionId);
+          if (delayedSection) {
+            delayedSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 500);
+      }
+    }
+    // On other pages, let the link work normally
+  };
+  
+  const toggleMenu = (): void => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   // Function to handle menu links with closure
   const handleNavLinkClick = () => {
@@ -102,9 +133,14 @@ export default function Header() {
           
           <div className="hidden md:flex items-center space-x-4">
             <nav className="flex space-x-6">
-              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition">
+              {/* Changed: Link now scrolls to adult-programs-section on homepage */}
+              <a 
+                href={isHomePage ? "#adult-programs-section" : "/courses"} 
+                onClick={scrollToSection("adult-programs-section")}
+                className="py-2 text-white hover:text-emerald-600 transition cursor-pointer"
+              >
                 COURSES
-              </Link>
+              </a>
               <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
                 LOCATIONS
               </Link>
@@ -131,7 +167,7 @@ export default function Header() {
           
           <button 
             className="md:hidden text-white"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={toggleMenu}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
           >
@@ -150,9 +186,17 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/courses" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
+              {/* Mobile menu link also updated */}
+              <a 
+                href={isHomePage ? "#adult-programs-section" : "/courses"} 
+                onClick={(e) => {
+                  scrollToSection("adult-programs-section")(e);
+                  setIsMenuOpen(false); // Close menu after clicking
+                }}
+                className="py-2 text-white hover:text-emerald-600 transition"
+               onClick={handleNavLinkClick}>
                 COURSES
-              </Link>
+              </a>
               <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 LOCATIONS
               </Link>
@@ -174,3 +218,5 @@ export default function Header() {
     </header>
   )
 }
+
+export default Header;

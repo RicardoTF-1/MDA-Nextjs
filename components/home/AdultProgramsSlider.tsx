@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -25,6 +25,16 @@ const DrivingAcademy = () => {
   const [currentAdvancedSlide, setCurrentAdvancedSlide] = useState(0);
   const [currentClassCSlide, setCurrentClassCSlide] = useState(0);
   const [currentChauffeurSlide, setCurrentChauffeurSlide] = useState(0);
+  const [fadeTransition, setFadeTransition] = useState(false);
+
+  // Effect for handling tab transitions
+  useEffect(() => {
+    setFadeTransition(true);
+    const timer = setTimeout(() => {
+      setFadeTransition(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   // Program card component for Best Sellers and More Programs slides
   const ProgramCard = ({ title, subtitle, description, extraInfo, cta = "Select your Location", icon }) => {
@@ -1323,6 +1333,7 @@ const DrivingAcademy = () => {
     </div>
   );
 
+  // Navigation functions for Adult Programs slides
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   };
@@ -1331,6 +1342,7 @@ const DrivingAcademy = () => {
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   };
 
+  // Navigation functions for Teen Programs slides
   const nextTeenSlide = () => {
     setCurrentTeenSlide((prev) => (prev === teenSlides.length - 1 ? 0 : prev + 1));
   };
@@ -1339,6 +1351,7 @@ const DrivingAcademy = () => {
     setCurrentTeenSlide((prev) => (prev === 0 ? teenSlides.length - 1 : prev - 1));
   };
   
+  // Navigation functions for Defensive Driving slides
   const nextDefensiveSlide = () => {
     setCurrentDefensiveSlide((prev) => (prev === defensiveSlides.length - 1 ? 0 : prev + 1));
   };
@@ -1347,6 +1360,7 @@ const DrivingAcademy = () => {
     setCurrentDefensiveSlide((prev) => (prev === 0 ? defensiveSlides.length - 1 : prev - 1));
   };
   
+  // Navigation functions for Advanced Driving Skills slides
   const nextAdvancedSlide = () => {
     setCurrentAdvancedSlide((prev) => (prev === advancedSlides.length - 1 ? 0 : prev + 1));
   };
@@ -1355,6 +1369,7 @@ const DrivingAcademy = () => {
     setCurrentAdvancedSlide((prev) => (prev === 0 ? advancedSlides.length - 1 : prev - 1));
   };
   
+  // Navigation functions for Class C Programs slides
   const nextClassCSlide = () => {
     setCurrentClassCSlide((prev) => (prev === classCSlides.length - 1 ? 0 : prev + 1));
   };
@@ -1363,12 +1378,21 @@ const DrivingAcademy = () => {
     setCurrentClassCSlide((prev) => (prev === 0 ? classCSlides.length - 1 : prev - 1));
   };
   
+  // Navigation functions for Chauffeur Programs slides
   const nextChauffeurSlide = () => {
     setCurrentChauffeurSlide((prev) => (prev === chauffeurSlides.length - 1 ? 0 : prev + 1));
   };
 
   const prevChauffeurSlide = () => {
     setCurrentChauffeurSlide((prev) => (prev === 0 ? chauffeurSlides.length - 1 : prev - 1));
+  };
+
+  const handleTabChange = (tab) => {
+    setFadeTransition(true);
+    setTimeout(() => {
+      setActiveTab(tab);
+      setFadeTransition(false);
+    }, 300);
   };
 
   const AdultProgramsContent = () => (
@@ -1388,8 +1412,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {slides[currentSlide].content}
       </div>
       
@@ -1505,8 +1529,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {teenSlides[currentTeenSlide].content}
       </div>
       
@@ -1554,8 +1578,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {defensiveSlides[currentDefensiveSlide].content}
       </div>
       
@@ -1603,8 +1627,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {advancedSlides[currentAdvancedSlide].content}
       </div>
       
@@ -1652,8 +1676,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {classCSlides[currentClassCSlide].content}
       </div>
       
@@ -1701,8 +1725,8 @@ const DrivingAcademy = () => {
         </button>
       </div>
       
-      {/* Slide content */}
-      <div className="transition-all duration-500 ease-in-out">
+      {/* Slide content with transition */}
+      <div className="transition-opacity duration-300 ease-in-out opacity-100">
         {chauffeurSlides[currentChauffeurSlide].content}
       </div>
       
@@ -1733,14 +1757,17 @@ const DrivingAcademy = () => {
     </div>
   );
 
+  // Add smooth transition classes for tab content
+  const contentClasses = `transition-opacity duration-300 ease-in-out ${fadeTransition ? 'opacity-0' : 'opacity-100'}`;
+
   return (
     <div className="bg-white min-h-screen">
       {/* Navbar */}
-      <nav className="bg-gray-900 text-white shadow-md">
+      <nav className="bg-gray-900 text-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-wrap justify-center md:justify-start">
             <button
-              onClick={() => setActiveTab('adult-programs')}
+              onClick={() => handleTabChange('adult-programs')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'adult-programs' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1751,7 +1778,7 @@ const DrivingAcademy = () => {
               Adult Programs
             </button>
             <button
-              onClick={() => setActiveTab('permit-prep')}
+              onClick={() => handleTabChange('permit-prep')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'permit-prep' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1762,7 +1789,7 @@ const DrivingAcademy = () => {
               Permit Prep
             </button>
             <button
-              onClick={() => setActiveTab('teen-programs')}
+              onClick={() => handleTabChange('teen-programs')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'teen-programs' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1773,7 +1800,7 @@ const DrivingAcademy = () => {
               Teen Programs
             </button>
             <button
-              onClick={() => setActiveTab('defensive-courses')}
+              onClick={() => handleTabChange('defensive-courses')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'defensive-courses' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1784,7 +1811,7 @@ const DrivingAcademy = () => {
               Defensive Courses
             </button>
             <button
-              onClick={() => setActiveTab('chauffeur-programs')}
+              onClick={() => handleTabChange('chauffeur-programs')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'chauffeur-programs' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1795,7 +1822,7 @@ const DrivingAcademy = () => {
               Chauffeur Programs
             </button>
             <button
-              onClick={() => setActiveTab('class-c-programs')}
+              onClick={() => handleTabChange('class-c-programs')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'class-c-programs' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1806,7 +1833,7 @@ const DrivingAcademy = () => {
               Class C Programs
             </button>
             <button
-              onClick={() => setActiveTab('advanced-programs')}
+              onClick={() => handleTabChange('advanced-programs')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'advanced-programs' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1817,7 +1844,7 @@ const DrivingAcademy = () => {
               Advanced Programs
             </button>
             <button
-              onClick={() => setActiveTab('instructor-program')}
+              onClick={() => handleTabChange('instructor-program')}
               className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
                 activeTab === 'instructor-program' 
                   ? 'border-emerald-500 text-emerald-400' 
@@ -1831,25 +1858,40 @@ const DrivingAcademy = () => {
         </div>
       </nav>
 
-      {/* Content based on active tab */}
-      {activeTab === 'adult-programs' 
-        ? <AdultProgramsContent /> 
-        : activeTab === 'permit-prep'
-        ? <PermitPrepContent />
-        : activeTab === 'teen-programs'
-        ? <TeenProgramsContent />
-        : activeTab === 'defensive-courses'
-        ? <DefensiveDrivingContent />
-        : activeTab === 'chauffeur-programs'
-        ? <ChauffeurProgramsContent />
-        : activeTab === 'class-c-programs'
-        ? <ClassCProgramsContent />
-        : activeTab === 'advanced-programs'
-        ? <AdvancedDrivingContent />
-        : <div>{instructorProgramContent}</div>
-      }
+      {/* Content based on active tab with transitions */}
+      <div className={contentClasses}>
+        {activeTab === 'adult-programs' 
+          ? <AdultProgramsContent /> 
+          : activeTab === 'permit-prep'
+          ? <PermitPrepContent />
+          : activeTab === 'teen-programs'
+          ? <TeenProgramsContent />
+          : activeTab === 'defensive-courses'
+          ? <DefensiveDrivingContent />
+          : activeTab === 'chauffeur-programs'
+          ? <ChauffeurProgramsContent />
+          : activeTab === 'class-c-programs'
+          ? <ClassCProgramsContent />
+          : activeTab === 'advanced-programs'
+          ? <AdvancedDrivingContent />
+          : <div>{instructorProgramContent}</div>
+        }
+      </div>
+      
+      {/* Add a scroll-to-top button */}
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-6 right-6 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all duration-300 focus:outline-none hover:scale-110 z-50"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
     </div>
   );
 };
 
 export default DrivingAcademy;
+
+
+
