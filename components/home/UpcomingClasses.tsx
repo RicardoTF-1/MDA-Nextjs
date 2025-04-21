@@ -2,24 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { fetchLocations, fetchCourseLocationsWithSchedules } from '/lib/api'
+import { fetchLocations, fetchCourseLocationsWithSchedules } from '@/lib/api'
 import { motion } from 'framer-motion'
 
-// Interfaces basadas en los modelos actualizados
+// Interfaces based on the updated models
 interface ClassSchedule {
   id: number;
   date: string;
   time: string;
   is_full: boolean;
   spots_left?: number;
-}
-
-interface Course {
-  id: number;
-  title: string;
-  slug: string;
-  category_name?: string;
-  subcategory_name?: string;
 }
 
 interface Location {
@@ -45,14 +37,13 @@ interface CourseLocation {
   registration_link: string;
 }
 
-export default function UpcomingClasses(): JSX.Element {
-  // Estados
+export default function UpcomingClasses(): React.ReactElement {
+  // States
   const [locations, setLocations] = useState<Location[]>([]);
   const [courseLocations, setCourseLocations] = useState<Map<number, CourseLocation[]>>(new Map());
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeLocationId, setActiveLocationId] = useState<number | null>(null);
-  const [debug, setDebug] = useState<string>('');
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -75,60 +66,58 @@ export default function UpcomingClasses(): JSX.Element {
       }
     );
     
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    const currentRef = sectionRef.current;
+    
+    if (currentRef) {
+      observer.observe(currentRef);
     }
     
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
 
-  // Cargar datos
+  // Load data
   useEffect(() => {
     const loadData = async (): Promise<void> => {
       try {
         setLoading(true);
-        setDebug('Iniciando carga de datos...');
         
-        // Paso 1: Obtener todas las ubicaciones
+        // Step 1: Get all locations
         const locationsData = await fetchLocations();
         console.log('Locations Data:', locationsData);
-        setDebug(prev => prev + '\nLocaciones cargadas: ' + locationsData.length);
         
         if (!Array.isArray(locationsData) || locationsData.length === 0) {
-          setError('No se encontraron ubicaciones');
+          setError('No locations found');
           setLoading(false);
           return;
         }
         
-        // Guardar las ubicaciones y establecer la primera como activa
+        // Save locations and set the first one as active
         setLocations(locationsData);
         if (locationsData.length > 0) {
           setActiveLocationId(locationsData[0].id);
         }
         
-        // Paso 2: Cargar CourseLocations con sus Schedules para cada ubicación
+        // Step 2: Load CourseLocations with their Schedules for each location
         const courseLocationsMap = new Map<number, CourseLocation[]>();
         
         for (const location of locationsData) {
           try {
-            // Obtener CourseLocations para esta ubicación con sus schedules
+            // Get CourseLocations for this location with their schedules
             const locationCourseLocations = await fetchCourseLocationsWithSchedules({
               locationId: location.id,
               withSchedule: true
             });
             
-            console.log(`CourseLocations para ${location.name}:`, locationCourseLocations);
-            setDebug(prev => prev + `\nCourseLocations para ${location.name}: ${locationCourseLocations.length}`);
+            console.log(`CourseLocations for ${location.name}:`, locationCourseLocations);
             
-            // Guardar en el mapa
+            // Save to the map
             courseLocationsMap.set(location.id, locationCourseLocations);
           } catch (err) {
-            console.error(`Error cargando CourseLocations para ${location.name}:`, err);
-            setDebug(prev => prev + `\nError cargando CourseLocations para ${location.name}`);
+            console.error(`Error loading CourseLocations for ${location.name}:`, err);
             courseLocationsMap.set(location.id, []);
           }
         }
@@ -136,8 +125,8 @@ export default function UpcomingClasses(): JSX.Element {
         setCourseLocations(courseLocationsMap);
         
       } catch (err) {
-        console.error('Error general cargando datos:', err);
-        setError('No se pudieron cargar los horarios de clases');
+        console.error('General error loading data:', err);
+        setError('Could not load class schedules');
       } finally {
         setLoading(false);
       }
@@ -146,12 +135,12 @@ export default function UpcomingClasses(): JSX.Element {
     loadData();
   }, []);
 
-  // Cambiar ubicación activa
+  // Change active location
   const handleLocationChange = (locationId: number): void => {
     setActiveLocationId(locationId);
   };
 
-  // Formatear fecha para mostrar
+  // Format date for display
   const formatDate = (dateStr?: string): string => {
     if (!dateStr) return '';
     
@@ -161,12 +150,12 @@ export default function UpcomingClasses(): JSX.Element {
         day: 'numeric', 
         year: 'numeric' 
       });
-    } catch (e) {
+    } catch (error) {
       return dateStr;
     }
   };
 
-  // Formatear hora para mostrar en formato AM/PM
+  // Format time for display in AM/PM format
   const formatTime = (timeStr?: string): string => {
     if (!timeStr) return '';
     
@@ -176,7 +165,7 @@ export default function UpcomingClasses(): JSX.Element {
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const hour12 = hour % 12 || 12;
       return `${hour12}:${minutes || '00'} ${ampm}`;
-    } catch (e) {
+    } catch (error) {
       return timeStr;
     }
   };
@@ -216,7 +205,7 @@ export default function UpcomingClasses(): JSX.Element {
     }
   };
 
-  // Estado de carga
+  // Loading state
   if (loading) {
     return (
       <div className="p-4 text-center" ref={sectionRef}>
@@ -230,13 +219,13 @@ export default function UpcomingClasses(): JSX.Element {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Cargando horarios...
+          Loading schedules...
         </motion.span>
       </div>
     );
   }
   
-  // Estado de error
+  // Error state
   if (error) {
     return (
       <motion.div 
@@ -251,7 +240,7 @@ export default function UpcomingClasses(): JSX.Element {
     );
   }
   
-  // No hay ubicaciones disponibles
+  // No locations available
   if (!Array.isArray(locations) || locations.length === 0) {
     return (
       <motion.div 
@@ -261,19 +250,19 @@ export default function UpcomingClasses(): JSX.Element {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        No hay horarios de clases disponibles actualmente.
+        No class schedules available at this time.
       </motion.div>
     );
   }
 
-  // Obtener la ubicación activa
+  // Get the active location
   const activeLocation = locations.find(loc => loc.id === activeLocationId) || locations[0];
   const activeCourseLocations = courseLocations.get(activeLocation.id) || [];
   
   return (
     <div className="py-8 px-4 bg-white" ref={sectionRef}>
       <div className="max-w-6xl mx-auto">
-        {/* Badge y título */}
+        {/* Badge and title */}
         <motion.div 
           className="text-center mb-8"
           variants={containerVariants}
@@ -309,7 +298,7 @@ export default function UpcomingClasses(): JSX.Element {
           UPCOMING CLASS SCHEDULES
         </motion.h3>
         
-        {/* Pestañas de ubicaciones */}
+        {/* Location tabs */}
         <motion.div 
           className="mb-4"
           variants={titleVariants}
@@ -337,7 +326,7 @@ export default function UpcomingClasses(): JSX.Element {
           </div>
         </motion.div>
         
-        {/* Información de la ubicación */}
+        {/* Location information */}
         <motion.div 
           className="bg-gray-100 rounded-lg p-4 mb-6"
           variants={titleVariants}
@@ -362,7 +351,7 @@ export default function UpcomingClasses(): JSX.Element {
           </div>
         </motion.div>
         
-        {/* Lista de clases */}
+        {/* Class list */}
         {activeCourseLocations.length > 0 ? (
           <motion.div
             variants={containerVariants}
@@ -426,7 +415,7 @@ export default function UpcomingClasses(): JSX.Element {
           </motion.div>
         )}
         
-        {/* Botón para ver todas las clases */}
+        {/* Button to view all classes */}
         <motion.div 
           className="mt-8 text-center"
           variants={titleVariants}
@@ -446,33 +435,6 @@ export default function UpcomingClasses(): JSX.Element {
           </motion.div>
         </motion.div>
       </div>
-      
-      {/* Información de debugging - solo visible en desarrollo */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8 p-4 bg-gray-100 rounded text-xs">
-          <h4 className="font-bold mb-2">Debug Info:</h4>
-          <p>Active Location: {activeLocation?.name}</p>
-          <p>Active CourseLocations: {activeCourseLocations.length}</p>
-          <details>
-            <summary className="cursor-pointer text-blue-500">Location Details</summary>
-            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
-              {JSON.stringify(activeLocation, null, 2)}
-            </pre>
-          </details>
-          <details>
-            <summary className="cursor-pointer text-blue-500 mt-2">CourseLocation Details</summary>
-            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
-              {JSON.stringify(activeCourseLocations, null, 2)}
-            </pre>
-          </details>
-          <details>
-            <summary className="cursor-pointer text-blue-500 mt-2">Debug Log</summary>
-            <pre className="mt-2 p-2 bg-gray-200 overflow-auto max-h-40 rounded">
-              {debug}
-            </pre>
-          </details>
-        </div>
-      )}
     </div>
   );
 }

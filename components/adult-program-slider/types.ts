@@ -1,6 +1,7 @@
 // components/adult-program-slider/types.ts
 import { ReactNode, ReactElement } from 'react';
 import { LucideIcon } from 'lucide-react';
+import { HTMLMotionProps } from 'framer-motion';
 
 // Tab types
 export type ProgramTabType = 
@@ -24,11 +25,18 @@ export interface ProgramTabsProps {
   onTabChange: (tab: ProgramTabType) => void;
 }
 
+// Animation related types
+export interface AnimatedCardProps {
+  motionProps?: HTMLMotionProps<"div">;
+  triggerOnce?: boolean;
+  threshold?: number;
+}
+
 // Card types
-export interface BaseCardProps {
+export interface BaseCardProps extends AnimatedCardProps {
   title: string;
   subtitle?: string;
-  icon?: ReactElement;
+  icon?: LucideIcon | ReactElement;
 }
 
 export interface ProgramCardProps extends BaseCardProps {
@@ -51,7 +59,7 @@ export interface TeenProgramCardProps extends BaseCardProps {
 }
 
 export interface DefensiveProgramCardProps extends BaseCardProps {
-  price?: string;
+  price?: string | number;
   points: string[];
 }
 
@@ -61,13 +69,13 @@ export interface AdvancedSkillsCardProps extends BaseCardProps {
 }
 
 export interface ClassCProgramCardProps extends BaseCardProps {
-  price?: string;
+  price?: string | number;
   points: string[];
   bestSeller?: boolean;
 }
 
 export interface ChauffeurProgramCardProps extends BaseCardProps {
-  price?: string;
+  price?: string | number;
   points: string[];
 }
 
@@ -106,5 +114,6 @@ export interface TeenBottomSectionProps {
 
 // Main component type
 export interface DrivingAcademyProps {
-  // Add any props the main component might need
+  title?: string;
+  description?: string;
 }

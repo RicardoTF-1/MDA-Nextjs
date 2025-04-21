@@ -2,15 +2,25 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { fetchTestimonials } from '/lib/api'
+import { fetchTestimonials } from '@/lib/api'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 
+interface Testimonial {
+  id: number;
+  name: string;
+  role?: string;
+  content: string;
+  rating: number;
+  image?: string;
+  video_url?: string;
+}
+
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef(null)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [isVisible, setIsVisible] = useState<boolean>(false)
+  const sectionRef = useRef<HTMLDivElement | null>(null)
   
   // Intersection Observer for scroll-based animations
   useEffect(() => {
@@ -31,13 +41,15 @@ export default function Testimonials() {
       }
     )
     
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
+    const currentRef = sectionRef.current;
+    
+    if (currentRef) {
+      observer.observe(currentRef)
     }
     
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
+      if (currentRef) {
+        observer.unobserve(currentRef)
       }
     }
   }, [])
@@ -160,6 +172,7 @@ export default function Testimonials() {
                         alt={testimonial.name}
                         fill
                         className="object-cover"
+                        sizes="64px"
                       />
                     </motion.div>
                   ) : (

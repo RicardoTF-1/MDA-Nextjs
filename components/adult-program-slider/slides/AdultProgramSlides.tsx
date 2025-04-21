@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Car, BookOpen, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Car, BookOpen, Award } from 'lucide-react';
+import { motion, useAnimation, Variants } from 'framer-motion';
 import { SlideProps } from '../types';
 import ProgramCard from '../cards/ProgramCard';
 import BottomLink from '../common/BottomLink';
@@ -12,8 +13,80 @@ interface AdultProgramSlidesProps {
   // Any props needed for API connections can be added here
 }
 
+// Animation variants
+const containerVariants: Variants = {
+  hidden: { 
+    opacity: 0,
+  },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      duration: 0.5,
+      when: "beforeChildren",
+      staggerChildren: 0.1
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: 0.3,
+      when: "afterChildren",
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: {
+      duration: 0.3
+    }
+  }
+};
+
+const buttonVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 20 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  },
+  hover: {
+    scale: 1.05,
+    transition: {
+      duration: 0.2
+    }
+  },
+  tap: {
+    scale: 0.95
+  }
+};
+
 const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const controls = useAnimation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   // Function to navigate to the next slide
   const nextSlide = (): void => {
@@ -30,191 +103,329 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
     setCurrentSlide(index);
   };
 
+  // Set mounted state
+  useEffect(() => {
+    setIsMounted(true);
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
+
+  // Setup Intersection Observer for scroll-based animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Just set the visibility state here, don't call controls.start yet
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } // 10% visibility threshold
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
+  // Handle animation controls separately, after component has mounted
+  useEffect(() => {
+    if (isMounted) {
+      if (isVisible) {
+        controls.start("visible");
+      } else {
+        controls.start("hidden");
+      }
+    }
+  }, [isVisible, controls, isMounted]);
+
+  // Reset animation when slide changes
+  useEffect(() => {
+    if (isMounted && isVisible) {
+      controls.start("visible");
+    }
+  }, [currentSlide, controls, isVisible, isMounted]);
+
   // Adult Programs Slides content
   const slides: SlideProps[] = [
     // Slide 0 - Original Adult Programs
     {
       title: "Adult Programs",
       content: (
-        <div className="max-w-6xl mx-auto px-4 animate-fadeIn">
-          <div className="text-center mb-10">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">Adult Programs</h1>
-            <p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed">
+        <motion.div 
+          className="max-w-6xl mx-auto px-2 sm:px-4"
+          initial="hidden"
+          animate={controls}
+          exit="exit"
+          variants={containerVariants}
+        >
+          <motion.div className="text-center mb-4 sm:mb-6" variants={itemVariants}>
+            <motion.h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4" variants={itemVariants}>Adult Programs</motion.h1>
+            <motion.p className="text-sm sm:text-base text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
               Whether you're a first-time driver or looking for a refresher, MyDrive Academy offers personalized adult driving programs tailored
-              to your needs. Our expert instructors provide comprehensive training, including permit test preparation, defensive driving
-              techniques, and road test readiness. We are committed to building safe, skilled, and confident drivers ready to navigate Illinois
-              roads with ease!
-            </p>
-          </div>
-          <div className="mt-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 shadow-md">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center">Here's how to get your driver's license:</h2>
+              to your needs. Our expert instructors provide comprehensive training for safe driving.
+            </motion.p>
+          </motion.div>
+          <motion.div className="mt-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 sm:p-6 shadow-md" variants={itemVariants}>
+            <motion.h2 className="text-xl font-semibold text-gray-800 mb-4 text-center" variants={itemVariants}>
+              Here's how to get your driver's license:
+            </motion.h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-emerald-500 transition-transform duration-300 hover:transform hover:scale-105">
-                <div className="flex justify-center mb-4">
-                  <BookOpen size={48} className="text-emerald-500" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+              <motion.div 
+                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                variants={itemVariants}
+              >
+                <div className="flex justify-center mb-2">
+                  <BookOpen size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">1. Secure Your Learner's Permit.</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">1. Secure Your Learner's Permit</h3>
+                <p className="text-xs sm:text-sm text-gray-700 mb-2">
                   Start your driving journey by obtaining your learner's permit.
                 </p>
-                <a href="/permit-prep" className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-2 px-4 rounded-md transition-colors">
+                <motion.a
+                  href="/permit-prep" 
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
                   Get Permit Help
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
               
-              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-emerald-500 transition-transform duration-300 hover:transform hover:scale-105">
-                <div className="flex justify-center mb-4">
-                  <Car size={48} className="text-emerald-500" />
+              <motion.div 
+                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                variants={itemVariants}
+              >
+                <div className="flex justify-center mb-2">
+                  <Car size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">2. Learn How to Drive.</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">2. Learn How to Drive</h3>
+                <p className="text-xs sm:text-sm text-gray-700 mb-2">
                   Professional driving lessons tailored to your skill level.
                 </p>
-                <a href="/adult-programs-best-sellers" className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-2 px-4 rounded-md transition-colors">
+                <motion.a
+                  href="/adult-programs-best-sellers" 
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
                   View Lessons
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
               
-              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-emerald-500 transition-transform duration-300 hover:transform hover:scale-105">
-                <div className="flex justify-center mb-4">
-                  <Award size={48} className="text-emerald-500" />
+              <motion.div 
+                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                variants={itemVariants}
+              >
+                <div className="flex justify-center mb-2">
+                  <Award size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">3. Pass your Road Test.</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">3. Pass your Road Test</h3>
+                <p className="text-xs sm:text-sm text-gray-700 mb-2">
                   Comprehensive preparation to ensure you pass your driving test.
                 </p>
-                <a href="/adult-programs-slide-3" className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-2 px-4 rounded-md transition-colors">
+                <motion.a
+                  href="/adult-programs-slide-3" 
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
                   Road Test Prep
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
           
-          <div className="mt-12 text-center space-x-6">
-            <a
+          <motion.div className="mt-4 sm:mt-6 text-center space-x-2 sm:space-x-4" variants={itemVariants}>
+            <motion.a
               href="/contact"
-              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-3 px-8 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 sm:py-2 sm:px-5 text-xs sm:text-sm rounded-lg shadow-sm"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               Contact Us
-            </a>
+            </motion.a>
             
-            <a
+            <motion.a
               href="/courses"
-              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-3 px-8 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 sm:py-2 sm:px-5 text-xs sm:text-sm rounded-lg shadow-sm"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               View All Programs
-            </a>
-          </div>
-        </div>
+            </motion.a>
+          </motion.div>
+        </motion.div>
       )
     },
     // Slide 1 - Best Sellers Programs
     {
       title: "Adult Programs: Best Sellers",
       content: (
-        <div className="max-w-6xl mx-auto px-4 animate-fadeIn">
-          <h1 className="text-5xl font-bold text-gray-900 mb-10 text-center">Adult Programs: Best Sellers</h1>
+        <motion.div 
+          className="max-w-6xl mx-auto px-2 sm:px-4"
+          initial="hidden"
+          animate={controls}
+          exit="exit"
+          variants={containerVariants}
+        >
+          <motion.h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 text-center" variants={itemVariants}>
+            Adult Programs: Best Sellers
+          </motion.h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            <ProgramCard 
-              title="Core Package" 
-              subtitle="6 Hours Behind-the-Wheel + Road Test"
-              description={[
-                "Perfect for beginners looking for structured practice and essential skills to drive safely.",
-                "This package covers fundamental driving techniques, basic maneuvers, and road test preparation to ensure you're fully ready for your test."
-              ]}
-              icon={<Car />}
-            />
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4" variants={containerVariants}>
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Core Package" 
+                subtitle="6 Hours Behind-the-Wheel + Road Test"
+                description={[
+                  "Perfect for beginners looking for structured practice.",
+                  "Covers fundamental techniques and test preparation."
+                ]}
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
             
-            <ProgramCard 
-              title="Essential Package" 
-              subtitle="8 Hours Behind-the-Wheel + Road Test"
-              description={[
-                "Ideal for new drivers who want extra practice beyond the basics to build confidence.",
-                "Provides more hands-on experience, improves driving skills, test readiness, and defensive abilities."
-              ]}
-              icon={<Car />}
-            />
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Essential Package" 
+                subtitle="8 Hours Behind-the-Wheel + Road Test"
+                description={[
+                  "Ideal for drivers who want extra practice.",
+                  "Builds confidence with more hands-on experience."
+                ]}
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
             
-            <ProgramCard 
-              title="Essential Pro" 
-              subtitle="12 Hours Behind-the-Wheel + Road Test"
-              extraInfo="Parallel Parking & Highway Driving"
-              description={[
-                "Drivers seeking comprehensive training, including challenging maneuvers.",
-                "Includes Parallel Parking and Highway Driving, building strong driving fundamentals."
-              ]}
-              icon={<Car />}
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Essential Pro" 
+                subtitle="12 Hours Behind-the-Wheel + Road Test"
+                extraInfo="Parallel Parking & Highway"
+                description={[
+                  "For those seeking comprehensive training.",
+                  "Includes Parallel Parking and Highway Driving."
+                ]}
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <BottomLink 
+              viewAllLink="/adult-programs" 
+              linkText="View All Adult Programs" 
             />
-          </div>
+          </motion.div>
 
-          <BottomLink 
-            viewAllLink="/adult-programs" 
-            linkText="View All Adult Programs" 
-          />
-
-          <FooterNotes />
-        </div>
+          <motion.div variants={itemVariants}>
+            <FooterNotes />
+          </motion.div>
+        </motion.div>
       )
     },
     // Slide 2 - More Adult Programs
     {
       title: "More Adult Programs",
       content: (
-        <div className="max-w-6xl mx-auto px-4 animate-fadeIn">
-          <h1 className="text-5xl font-bold text-gray-900 mb-10 text-center">More Adult Programs</h1>
+        <motion.div 
+          className="max-w-6xl mx-auto px-2 sm:px-4"
+          initial="hidden"
+          animate={controls}
+          exit="exit"
+          variants={containerVariants}
+        >
+          <motion.h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 text-center" variants={itemVariants}>
+            More Adult Programs
+          </motion.h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-            <ProgramCard 
-              title="Express Drive Package" 
-              subtitle="2 Hours Behind-the-Wheel + Road Test"
-              description={[
-                "Perfect for those needing a quick refresher before taking the road test.",
-                "Covers fundamental driving techniques and road test preparation."
-              ]}
-              icon={<Car />}
-            />
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4" variants={containerVariants}>
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Express Drive Package" 
+                subtitle="2 Hours Behind-the-Wheel + Road Test"
+                description={[
+                  "Quick refresher before taking the road test.",
+                  "Covers fundamental driving techniques."
+                ]}
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
             
-            <ProgramCard 
-              title="Quick Start Package" 
-              subtitle="4 Hours Behind-the-Wheel + Road Test"
-              description={[
-                "Ideal for those needing a quick refresher before their road test.",
-                "This package covers essential skills, corrects common mistakes, and builds confidence for the test."
-              ]}
-              icon={<Car />}
-            />
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Quick Start Package" 
+                subtitle="4 Hours Behind-the-Wheel + Road Test"
+                description={[
+                  "For those needing a quick refresher.",
+                  "Covers essential skills for test confidence."
+                ]}
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
             
-            <ProgramCard 
-              title="Expert Driver Package" 
-              subtitle="Permit Prep + 2 Hours Behind-the-Wheel + Road Test"
-              description={[
-                "Designed for non-U.S. citizens without a Social Security Number.",
-                "Includes permit exam preparation, state-mandated instruction, and a streamlined path to an Illinois driver's license.",
-                "Available in English or Spanish"
-              ]}
-              cta="Register Now"
-              icon={<Car />}
+            <motion.div variants={itemVariants}>
+              <ProgramCard 
+                title="Expert Driver Package" 
+                subtitle="Permit Prep + 2 Hrs + Road Test"
+                description={[
+                  "For non-U.S. citizens without SSN.",
+                  "Available in English or Spanish"
+                ]}
+                cta="Register Now"
+                icon={<Car size={24} />}
+                compact={true}
+              />
+            </motion.div>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <BottomLink 
+              viewAllLink="/adult-programs" 
+              linkText="Explore All Program Options" 
             />
-          </div>
+          </motion.div>
 
-          <BottomLink 
-            viewAllLink="/adult-programs" 
-            linkText="Explore All Program Options" 
-          />
-
-          <FooterNotes />
-        </div>
+          <motion.div variants={itemVariants}>
+            <FooterNotes />
+          </motion.div>
+        </motion.div>
       )
     }
   ];
 
   return (
-    <div className="py-12 px-4 bg-white relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-50 rounded-full opacity-30"></div>
-      <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-50 rounded-full opacity-30"></div>
+    <div 
+      className="py-4 sm:py-6 px-2 sm:px-4 bg-white relative overflow-hidden"
+      ref={containerRef}
+    >
+      {/* Background decorative elements - reduced size */}
+      <motion.div 
+        className="absolute -top-10 -left-10 w-20 h-20 bg-emerald-50 rounded-full opacity-30"
+        animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
+        transition={{ duration: 0.8 }}
+      ></motion.div>
+      <motion.div 
+        className="absolute -bottom-10 -right-10 w-20 h-20 bg-emerald-50 rounded-full opacity-30"
+        animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      ></motion.div>
       
       {/* Slide navigation */}
       <SlideNavigation

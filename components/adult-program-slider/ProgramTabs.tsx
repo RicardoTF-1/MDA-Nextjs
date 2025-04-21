@@ -10,7 +10,31 @@ import {
   Award,
   GraduationCap
 } from 'lucide-react';
-import { ProgramTabsProps, ProgramTabItem, ProgramTabType } from './types';
+import { motion } from 'framer-motion';
+
+// Define allowed tab types
+export type ProgramTabType = 
+  | 'adult-programs'
+  | 'permit-prep'
+  | 'teen-programs'
+  | 'defensive-courses'
+  | 'chauffeur-programs'
+  | 'class-c-programs'
+  | 'advanced-programs'
+  | 'instructor-program';
+
+// Define individual tab item structure
+export interface ProgramTabItem {
+  id: ProgramTabType;
+  label: string;
+  icon: React.ElementType;
+}
+
+// Define props for the ProgramTabs component
+export interface ProgramTabsProps {
+  activeTab: ProgramTabType;
+  onTabChange: (tabId: ProgramTabType) => void;
+}
 
 const programTabs: ProgramTabItem[] = [
   {
@@ -56,36 +80,60 @@ const programTabs: ProgramTabItem[] = [
 ];
 
 const ProgramTabs: React.FC<ProgramTabsProps> = ({ activeTab, onTabChange }) => {
+  // Handle tab click
   const handleTabClick = (tab: ProgramTabType): void => {
     onTabChange(tab);
   };
 
   return (
-    <nav className="bg-gray-900 text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-wrap justify-center md:justify-start">
+    <div className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Centered tabs container */}
+        <div 
+          className="flex flex-wrap justify-center"
+          role="tablist"
+          aria-label="Program categories"
+        >
           {programTabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
             return (
-              <button
+              <motion.button
+                id={`tab-${tab.id}`}
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`py-4 px-3 md:px-4 font-medium text-sm md:text-lg border-b-2 transition-colors flex items-center ${
-                  activeTab === tab.id 
-                    ? 'border-emerald-500 text-emerald-400' 
-                    : 'border-transparent hover:text-emerald-400'
+                className={`py-4 px-4 lg:px-5 text-sm lg:text-base transition-colors focus:outline-none relative ${
+                  isActive
+                    ? 'text-emerald-400'
+                    : 'text-gray-300 hover:text-emerald-300'
                 }`}
-                aria-selected={activeTab === tab.id}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+                aria-selected={isActive}
                 role="tab"
               >
-                <Icon size={18} className="mr-1 hidden md:inline" />
-                {tab.label}
-              </button>
+                <div className="flex items-center justify-center">
+                  <Icon 
+                    size={18} 
+                    className={`${isActive ? 'text-emerald-400' : 'text-gray-400'} mr-2`} 
+                  />
+                  <span>{tab.label}</span>
+                </div>
+                
+                {/* Active indicator - underline */}
+                {isActive && (
+                  <motion.div 
+                    className="absolute bottom-0 left-0 w-full h-1 bg-emerald-500"
+                    layoutId="active-indicator"
+                  />
+                )}
+              </motion.button>
             );
           })}
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 

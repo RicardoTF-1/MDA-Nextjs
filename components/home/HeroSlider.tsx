@@ -2,15 +2,27 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { fetchSliderImages } from '../../lib/api'
 import StatsSection from './StatsSection'
 
+interface SliderImage {
+  id: number;
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  image_url?: string;
+  button_text?: string;
+  button_link?: string;
+  order?: number;
+}
+
 export default function HeroSlider() {
-  const [images, setImages] = useState([])
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [images, setImages] = useState<SliderImage[]>([])
+  const [currentIndex, setCurrentIndex] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadSliderImages = async () => {
@@ -41,18 +53,8 @@ export default function HeroSlider() {
     return () => clearInterval(interval)
   }, [images.length])
 
-  const goToSlide = (index) => {
+  const goToSlide = (index: number) => {
     setCurrentIndex(index)
-  }
-
-  const goToPrevious = () => {
-    const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
-    setCurrentIndex(newIndex)
-  }
-
-  const goToNext = () => {
-    const newIndex = (currentIndex + 1) % images.length
-    setCurrentIndex(newIndex)
   }
 
   if (loading) {
@@ -85,7 +87,7 @@ export default function HeroSlider() {
       {images.map((slide, index) => {
         // Get the full image URL
         const imageUrl = slide.image_url || 
-                        (slide.image?.startsWith('http') ? slide.image : `http://localhost:8000${slide.image}`)
+                (slide.image?.startsWith('http') ? slide.image : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:8000'}${slide.image}`)
         
         return (
           <div
@@ -96,11 +98,17 @@ export default function HeroSlider() {
           >
             {/* Background Image */}
             <div className="absolute inset-0 bg-gray-1000">
-              <img 
-                src={imageUrl}
-                alt={slide.title || `Slide ${index + 1}`}
-                className="w-full h-full object-cover opacity-80"
-              />
+              <div className="relative w-full h-full">
+                <Image 
+                  src={imageUrl}
+                  alt={slide.title || `Slide ${index + 1}`}
+                  className="object-cover opacity-80"
+                  fill
+                  priority={index === 0}
+                  quality={85}
+                  sizes="100vw"
+                />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900/40"></div>
             </div>
             
