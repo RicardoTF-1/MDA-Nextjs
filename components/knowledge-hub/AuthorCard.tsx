@@ -1,14 +1,22 @@
 "use client"
 
-export default function AuthorCard({ author }) {
+import Image from 'next/image';
+
+interface AuthorCardProps {
+  author: string;
+}
+
+export default function AuthorCard({ author }: AuthorCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8 flex items-center">
       <div className="mr-4 flex-shrink-0">
         <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-200">
-          <img
+          <Image
             src="/images/author-placeholder.jpg"
             alt={author}
-            className="object-cover w-full h-full"
+            className="object-cover"
+            fill
+            sizes="64px"
           />
         </div>
       </div>

@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-const statsData = [
+interface StatItem {
+  value: number;
+  suffix: string;
+  label: string;
+}
+
+const statsData: StatItem[] = [
   {
     value: 99,
     suffix: '%',
@@ -25,60 +31,70 @@ const statsData = [
   }
 ];
 
-const AnimatedCounter = ({ value, suffix, duration = 2000 }) => {
-  const [count, setCount] = useState(0);
-  const countRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
+interface AnimatedCounterProps {
+  value: number;
+  suffix: string;
+  duration?: number;
+}
 
+const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, suffix, duration = 2000 }) => {
+  const [count, setCount] = useState<number>(0);
+  const countRef = useRef<HTMLSpanElement | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.unobserve(countRef.current);
+          if (countRef.current) {
+            observer.unobserve(countRef.current);
+          }
         }
       },
       { threshold: 0.1 }
     );
-
-    if (countRef.current) {
-      observer.observe(countRef.current);
+    
+    const currentRef = countRef.current;
+    
+    if (currentRef) {
+      observer.observe(currentRef);
     }
-
+    
     return () => {
-      if (countRef.current) {
-        observer.unobserve(countRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
-
+  
   useEffect(() => {
     if (!isVisible) return;
-
-    let startTime;
-    let animationFrameId;
-
+    
+    let startTime: number | null = null;
+    let animationFrameId: number;
+    
     const startCount = 0;
     const endCount = value;
-
-    const step = (timestamp) => {
+    
+    const step = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-        
+      
       setCount(Math.floor(progress * (endCount - startCount) + startCount));
-        
+      
       if (progress < 1) {
         animationFrameId = requestAnimationFrame(step);
       }
     };
-
+    
     animationFrameId = requestAnimationFrame(step);
-
+    
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
   }, [value, duration, isVisible]);
-
+  
   return (
     <span ref={countRef}>
       {count}
@@ -93,7 +109,7 @@ export default function StatsSection() {
       {statsData.map((stat, index) => (
         <div key={index} className="text-center">
           <div className="text-4xl md:text-5xl font-bold text-white mb-1">
-            <AnimatedCounter 
+            <AnimatedCounter
               value={stat.value}
               suffix={stat.suffix}
             />

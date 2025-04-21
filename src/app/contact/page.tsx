@@ -1,7 +1,7 @@
 // app/contact/page.js
 import { Suspense } from 'react';
+import Image from 'next/image';
 import ContactForm from '@/components/contact/ContactForm';
-import ContactInfoBar from '@/components/contact/ContactInfoBar';
 import VerticalContactInfoBar from '@/components/contact/ContactInfoBar';
 
 export const metadata = {
@@ -13,11 +13,16 @@ export const metadata = {
 const ContactBanner = () => {
   return (
     <div className="relative w-full overflow-hidden rounded-xl mb-1">
-      <img 
-        src="/images/banners/contact-banner.png" 
-        alt="My Drive Academy building" 
-        className="w-full h-48 md:h-64 object-cover"
-      />
+      <div className="relative w-full h-48 md:h-64">
+        <Image
+          src="/images/banners/contact-banner.png"
+          alt="My Drive Academy building"
+          className="object-cover"
+          fill
+          sizes="100vw"
+          priority
+        />
+      </div>
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">Contact Us</h1>
       </div>
@@ -33,18 +38,13 @@ export default function ContactPage() {
         <Suspense fallback={<div className="h-48 bg-gray-200 animate-pulse rounded-xl mb-10"></div>}>
           <ContactBanner />
         </Suspense>
-        
-        {/* Horizontal Contact Info Bar */}
-        {/* <Suspense fallback={<div className="h-16 bg-gray-200 animate-pulse rounded-lg mb-8"></div>}>
-          <ContactInfoBar />
-        </Suspense> */}
-        
+                
         <div className="max-w-6xl mx-auto mt-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in touch</h2>
           <p className="text-gray-600 mb-8 max-w-2xl">
             Fill the form with your query, and our team will get back to you asap.
           </p>
-          
+                    
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left column: Contact form */}
             <div className="lg:w-2/3 bg-blue-50 rounded-xl p-8">
@@ -52,7 +52,7 @@ export default function ContactPage() {
                 <ContactForm />
               </Suspense>
             </div>
-            
+                        
             {/* Right column: Vertical contact information */}
             <div className="lg:w-1/3">
               <Suspense fallback={<div className="h-80 bg-gray-200 animate-pulse rounded-md"></div>}>

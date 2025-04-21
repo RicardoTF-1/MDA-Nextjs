@@ -2,16 +2,29 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { fetchBanners } from '/lib/api';
+import Image from 'next/image';
+import { fetchBanners } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface BannerSlide {
+  id: number;
+  title: string;
+  description?: string;
+  image?: string;
+  image_url?: string;
+  button_text?: string;
+  button_link?: string;
+  button_color?: string;
+  order?: number;
+}
+
 export default function BannerSlider() {
-  const [bannerSlides, setBannerSlides] = useState([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const slideInterval = useRef(null);
-  const sliderRef = useRef(null);
+  const [bannerSlides, setBannerSlides] = useState<BannerSlide[]>([]);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const slideInterval = useRef<NodeJS.Timeout | null>(null);
+  const sliderRef = useRef<HTMLDivElement | null>(null);
   
   // Fetch banner data from API
   useEffect(() => {
@@ -56,7 +69,7 @@ export default function BannerSlider() {
     };
   }, [bannerSlides.length]);
   
-  const goToSlide = (index) => {
+  const goToSlide = (index: number) => {
     setCurrentSlide(index);
     
     // Reset interval timer when manually changing slides
@@ -162,11 +175,16 @@ export default function BannerSlider() {
             >
               {/* Background image */}
               <div className="absolute inset-0 z-1">
-                <img 
-                  src={imageUrl}
-                  alt={slide.title || `Slide ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative h-full w-full">
+                  <Image 
+                    src={imageUrl}
+                    alt={slide.title || `Slide ${index + 1}`}
+                    className="object-cover"
+                    fill
+                    sizes="100vw"
+                    priority={index === 0}
+                  />
+                </div>
               </div>
               
               {/* Content overlay */}

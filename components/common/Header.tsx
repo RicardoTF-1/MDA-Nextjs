@@ -2,7 +2,7 @@
 
 import { useState, useEffect, MouseEvent } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { fetchSiteSettings } from '../../lib/api'
 
 // Define interfaces for our data types
@@ -11,7 +11,7 @@ interface SiteSettings {
   logo_url: string | null;
 }
 
-const Header = (): JSX.Element => {
+const Header = (): React.ReactElement => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [isScrolled, setIsScrolled] = useState<boolean>(false)
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -20,6 +20,7 @@ const Header = (): JSX.Element => {
   })
   const [loading, setLoading] = useState<boolean>(true)
   const pathname = usePathname()
+  const router = useRouter()
   
   // Effect to load site settings
   useEffect(() => {
@@ -37,7 +38,7 @@ const Header = (): JSX.Element => {
     loadSiteSettings()
   }, [])
 
-  // Separate effect to handle scroll
+  // Effect for handling scroll
   useEffect(() => {
     const handleScroll = (): void => {
       setIsScrolled(window.scrollY > 10)
@@ -47,6 +48,11 @@ const Header = (): JSX.Element => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Effect to close menu when pathname changes (page navigation)
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [pathname])
+  
   // Determine if we're on the home page
   const isHomePage = pathname === '/'
   
@@ -60,7 +66,7 @@ const Header = (): JSX.Element => {
   
   // Apply global style to adjust top margin only on home page
   useEffect(() => {
-    // Only affects elements in the main layout, not the header
+    // Only affects elements within main layout, not the header
     if (isHomePage) {
       document.body.style.paddingTop = '0px';
     } else {
@@ -68,7 +74,7 @@ const Header = (): JSX.Element => {
     }
     
     return () => {
-      document.body.style.paddingTop = '0px'; // Cleanup on unmount
+      document.body.style.paddingTop = '0px'; // Clean up on unmount
     }
   }, [isHomePage]);
   
@@ -95,6 +101,11 @@ const Header = (): JSX.Element => {
   
   const toggleMenu = (): void => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Function to handle menu links with closure
+  const handleNavLinkClick = () => {
+    setIsMenuOpen(false);
   };
   
   return (
@@ -157,6 +168,8 @@ const Header = (): JSX.Element => {
           <button 
             className="md:hidden text-white"
             onClick={toggleMenu}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -181,21 +194,21 @@ const Header = (): JSX.Element => {
                   setIsMenuOpen(false); // Close menu after clicking
                 }}
                 className="py-2 text-white hover:text-emerald-600 transition"
-              >
+               onClick={handleNavLinkClick}>
                 COURSES
               </a>
-              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 LOCATIONS
               </Link>
-              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 KNOWLEDGE HUB
               </Link>
-              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition">
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
                 ABOUT
               </Link>
             </nav>
             <div className="flex flex-col space-y-2 mt-4">
-              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center">
+              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center" onClick={handleNavLinkClick}>
                 Contact Us
               </Link>
             </div>
