@@ -172,30 +172,34 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
 
   // Class C Programs Slides content
   const classCSlides: SlideProps[] = [
+    // Slide 1: Main Information and Logos
     {
       title: "Class C Programs",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.div className="text-center mb-10" variants={itemVariants}>
-            <motion.h1 className="text-5xl font-bold text-gray-900 mb-6" variants={itemVariants}>
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <motion.h1 className="text-4xl font-bold text-gray-900 mb-6" variants={itemVariants}>
               Class C Programs
             </motion.h1>
             <motion.p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
               Kickstart your career with MyDrive Academy's specialized Class C programs! In Illinois, a Class C license 
               is required for drivers who operate vehicles that transport 15 passengers (including the driver) with a gross 
               vehicle weight rating (GVWR) of less than 26,001 pounds. This license is essential for a wide range of passenger 
-              or transport roles, including taxicabs, shuttle buses, and noncommercial vehicles. This expands your opportunities 
-              to drive commercial vehicles for large enterprises like:
+              or transport roles, including taxicabs, shuttle buses, and noncommercial vehicles.
+            </motion.p>
+            
+            <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
+              This expands your opportunities to drive commercial vehicles for large enterprises like:
             </motion.p>
             
             <motion.div 
-              className="flex justify-center items-center space-x-8 mt-8"
+              className="flex justify-center items-center space-x-8 mt-8 mb-8"
               variants={containerVariants}
             >
               <motion.img 
@@ -236,20 +240,40 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               standards for passenger transport.
             </motion.p>
             
-            <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-4" variants={itemVariants}>
+            <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
               Our expert instructors are dedicated to providing the training and support you need to pass your exams and 
               hit the road as a confident, professional driver. With hands-on training and comprehensive instruction, we 
               ensure you're fully prepared to meet Illinois state requirements and succeed in your new career.
             </motion.p>
             
-            <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-4" variants={itemVariants}>
+            <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
               Discover the Gateway to Exciting Careers! License C type training can open the door to great employment 
               opportunities! Start your journey to obtaining a Class C License today at MyDrive Academy!
             </motion.p>
           </motion.div>
+        </motion.div>
+      )
+    },
+    // Slide 2: Class C Packages
+    {
+      title: "Class C Program Packages",
+      content: (
+        <motion.div 
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
+          initial="hidden"
+          animate={controls}
+          exit="exit"
+          variants={containerVariants}
+        >
+          <motion.h1 
+            className="text-4xl font-bold text-gray-900 mb-8 text-center"
+            variants={itemVariants}
+          >
+            Class C Program Packages
+          </motion.h1>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
             variants={cardsContainerVariants}
           >
             <motion.div variants={cardVariants}>
@@ -296,31 +320,16 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
             </motion.div>
           </motion.div>
           
-          <motion.div className="text-center mb-8" variants={itemVariants}>
-            <motion.div variants={itemVariants}>
-              <LocationDropdown 
-                title="Select your Location"
-                subtitle="DSS Page with Price"
-                locations={[
-                  { label: "CHICAGO", value: "chicago", href: "/chicago" },
-                  { label: "SUBURB", value: "suburb", href: "/suburb" }
-                ]}
-              />
-            </motion.div>
+          <motion.div className="text-center" variants={itemVariants}>
             
-            <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto mt-6" variants={itemVariants}>
-              ***Use our vehicles for your road test at the Secretary of State facility
-            </motion.p>
-            <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto mt-2" variants={itemVariants}>
-              ***Student enrolling in any of these packages MUST possess a valid, non-CDL Illinois driver's license. Need one?
-              <motion.span 
-                className="text-red-500 ml-2"
-                animate={{ opacity: [0, 1], x: [10, 0] }}
-                transition={{ duration: 0.5, delay: 1 }}
-              >
-                Redirected to Adult Programs Best Sellers
-              </motion.span>
-            </motion.p>
+            <motion.div className="mt-6" variants={itemVariants}>
+              <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto" variants={itemVariants}>
+                ***Use our vehicles for your road test at the Secretary of State facility
+              </motion.p>
+              <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto mt-2" variants={itemVariants}>
+                ***Student enrolling in any of these packages MUST possess a valid, non-CDL Illinois driver's license.
+              </motion.p>
+            </motion.div>
           </motion.div>
         </motion.div>
       )
@@ -329,7 +338,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
 
   return (
     <div 
-      className="py-12 px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
       {/* Background decorative elements */}
@@ -362,3 +371,6 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
 };
 
 export default ClassCProgramSlides;
+
+
+

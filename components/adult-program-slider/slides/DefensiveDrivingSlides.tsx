@@ -183,15 +183,15 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
       title: "Defensive Driving Courses",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.div className="text-center mb-10" variants={itemVariants}>
+          <motion.div className="text-center mb-8" variants={itemVariants}>
             <motion.h1 
-              className="text-5xl font-bold text-gray-900 mb-6"
+              className="text-4xl font-bold text-gray-900 mb-4"
               variants={itemVariants}
             >
               Defensive Driving Courses
@@ -215,7 +215,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
           </motion.div>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
             variants={cardsContainerVariants}
           >
             <motion.div variants={cardVariants}>
@@ -259,7 +259,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
           </motion.div>
           
           <motion.div 
-            className="max-w-4xl mx-auto mb-8"
+            className="max-w-4xl mx-auto"
             variants={itemVariants}
           >
             <motion.div 
@@ -296,7 +296,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
             </motion.div>
             
             <motion.div 
-              className="text-center mt-8 text-gray-600"
+              className="text-center mt-6 text-gray-600"
               variants={itemVariants}
             >
               <motion.p 
@@ -313,17 +313,6 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
                   Click here!
                 </motion.a>
               </motion.p>
-              <motion.p 
-                className="text-red-500"
-                variants={itemVariants}
-                animate={{ 
-                  opacity: [0, 1],
-                  y: [10, 0],
-                  transition: { duration: 0.5, delay: 0.8 }
-                }}
-              >
-                Redirected to Adult Programs Best Sellers
-              </motion.p>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -333,7 +322,7 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
 
   return (
     <div 
-      className="py-12 px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
       {/* Background decorative elements */}
@@ -347,15 +336,6 @@ const DefensiveDrivingSlides: React.FC<DefensiveDrivingSlidesProps> = () => {
         animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       ></motion.div>
-      
-      {/* Slide navigation */}
-      <SlideNavigation
-        currentSlide={currentSlide}
-        totalSlides={defensiveSlides.length}
-        onPrevious={prevSlide}
-        onNext={nextSlide}
-        onSelect={goToSlide}
-      />
       
       {/* Slide content */}
       <div className="transition-all duration-500 ease-in-out">

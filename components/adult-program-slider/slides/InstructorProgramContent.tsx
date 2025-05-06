@@ -164,18 +164,18 @@ const InstructorProgramContent: React.FC<InstructorProgramContentProps> = () => 
 
   return (
     <motion.div 
-      className="max-w-6xl mx-auto px-4 py-12"
+      className="max-w-6xl mx-auto px-4 py-12 h-[680px]"
       ref={containerRef}
       initial="hidden"
       animate={controls}
       variants={containerVariants}
     >
       <motion.div 
-        className="text-center mb-10"
+        className="text-center mb-8"
         variants={itemVariants}
       >
         <motion.h1 
-          className="text-5xl font-bold text-gray-900 mb-6"
+          className="text-4xl font-bold text-gray-900 mb-4"
           variants={itemVariants}
         >
           Instructor Training Program
@@ -339,7 +339,7 @@ const InstructorProgramContent: React.FC<InstructorProgramContentProps> = () => 
       </motion.div>
       
       <motion.div 
-        className="mt-12 text-center max-w-4xl mx-auto"
+        className="mt-8 text-center max-w-4xl mx-auto"
         variants={itemVariants}
       >
         <motion.h3 
@@ -395,7 +395,7 @@ const InstructorProgramContent: React.FC<InstructorProgramContentProps> = () => 
         </motion.div>
         
         <motion.p 
-          className="mt-8 text-gray-700"
+          className="mt-6 text-gray-700"
           variants={itemVariants}
         >
           Start your journey as a driving instructor today! For more information or to schedule a consultation, 

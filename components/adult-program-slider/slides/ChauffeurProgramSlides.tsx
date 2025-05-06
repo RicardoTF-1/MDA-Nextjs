@@ -177,14 +177,14 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
       title: "Chauffeur Training Programs",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.div className="text-center mb-10" variants={itemVariants}>
-            <motion.h1 className="text-5xl font-bold text-gray-900 mb-6" variants={itemVariants}>
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <motion.h1 className="text-4xl font-bold text-gray-900 mb-4" variants={itemVariants}>
               Chauffeur Training Programs
             </motion.h1>
             <motion.p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
@@ -244,9 +244,6 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
                 Click here!
               </motion.a>
             </motion.p>
-            <motion.p className="text-red-500" variants={itemVariants}>
-              Redirected to Adult Programs Best Sellers
-            </motion.p>
           </motion.div>
         </motion.div>
       )
@@ -255,7 +252,7 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
 
   return (
     <div 
-      className="py-12 px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
       {/* Background decorative elements */}
@@ -270,14 +267,6 @@ const ChauffeurProgramSlides: React.FC<ChauffeurProgramSlidesProps> = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
       ></motion.div>
       
-      {/* Slide navigation */}
-      <SlideNavigation
-        currentSlide={currentSlide}
-        totalSlides={chauffeurSlides.length}
-        onPrevious={prevSlide}
-        onNext={nextSlide}
-        onSelect={goToSlide}
-      />
       
       {/* Slide content */}
       <div className="transition-all duration-500 ease-in-out">

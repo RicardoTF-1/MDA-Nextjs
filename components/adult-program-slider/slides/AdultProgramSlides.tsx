@@ -157,39 +157,39 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
       title: "Adult Programs",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-2 sm:px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.div className="text-center mb-4 sm:mb-6" variants={itemVariants}>
-            <motion.h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4" variants={itemVariants}>Adult Programs</motion.h1>
-            <motion.p className="text-sm sm:text-base text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
+          <motion.div className="text-center mb-6" variants={itemVariants}>
+            <motion.h1 className="text-4xl font-bold text-gray-900 mb-4" variants={itemVariants}>Adult Programs</motion.h1>
+            <motion.p className="text-base text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
               Whether you're a first-time driver or looking for a refresher, MyDrive Academy offers personalized adult driving programs tailored
               to your needs. Our expert instructors provide comprehensive training for safe driving.
             </motion.p>
           </motion.div>
-          <motion.div className="mt-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 sm:p-6 shadow-md" variants={itemVariants}>
+          <motion.div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-md" variants={itemVariants}>
             <motion.h2 className="text-xl font-semibold text-gray-800 mb-4 text-center" variants={itemVariants}>
               Here's how to get your driver's license:
             </motion.h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <motion.div 
-                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
                 variants={itemVariants}
               >
                 <div className="flex justify-center mb-2">
                   <BookOpen size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">1. Secure Your Learner's Permit</h3>
-                <p className="text-xs sm:text-sm text-gray-700 mb-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2">1. Secure Your Learner's Permit</h3>
+                <p className="text-sm text-gray-700 mb-2">
                   Start your driving journey by obtaining your learner's permit.
                 </p>
                 <motion.a
                   href="/permit-prep" 
-                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 text-sm rounded-md transition-colors"
                   variants={buttonVariants}
                   whileHover="hover"
                   whileTap="tap"
@@ -199,19 +199,19 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
               </motion.div>
               
               <motion.div 
-                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
                 variants={itemVariants}
               >
                 <div className="flex justify-center mb-2">
                   <Car size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">2. Learn How to Drive</h3>
-                <p className="text-xs sm:text-sm text-gray-700 mb-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2">2. Learn How to Drive</h3>
+                <p className="text-sm text-gray-700 mb-2">
                   Professional driving lessons tailored to your skill level.
                 </p>
                 <motion.a
                   href="/adult-programs-best-sellers" 
-                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 text-sm rounded-md transition-colors"
                   variants={buttonVariants}
                   whileHover="hover"
                   whileTap="tap"
@@ -221,19 +221,19 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
               </motion.div>
               
               <motion.div 
-                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
+                className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-emerald-500"
                 variants={itemVariants}
               >
                 <div className="flex justify-center mb-2">
                   <Award size={28} className="text-emerald-500" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 sm:mb-2">3. Pass your Road Test</h3>
-                <p className="text-xs sm:text-sm text-gray-700 mb-2">
+                <h3 className="text-lg font-bold text-gray-800 mb-2">3. Pass your Road Test</h3>
+                <p className="text-sm text-gray-700 mb-2">
                   Comprehensive preparation to ensure you pass your driving test.
                 </p>
                 <motion.a
                   href="/adult-programs-slide-3" 
-                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1 px-2 sm:py-1.5 sm:px-3 text-xs sm:text-sm rounded-md transition-colors"
+                  className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 text-sm rounded-md transition-colors"
                   variants={buttonVariants}
                   whileHover="hover"
                   whileTap="tap"
@@ -244,10 +244,10 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
             </div>
           </motion.div>
           
-          <motion.div className="mt-4 sm:mt-6 text-center space-x-2 sm:space-x-4" variants={itemVariants}>
+          <motion.div className="mt-6 text-center space-x-4" variants={itemVariants}>
             <motion.a
               href="/contact"
-              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 sm:py-2 sm:px-5 text-xs sm:text-sm rounded-lg shadow-sm"
+              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-2 px-5 text-sm rounded-lg shadow-sm"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -257,7 +257,7 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
             
             <motion.a
               href="/courses"
-              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-1.5 px-3 sm:py-2 sm:px-5 text-xs sm:text-sm rounded-lg shadow-sm"
+              className="inline-block bg-emerald-500 text-white hover:bg-emerald-600 font-medium py-2 px-5 text-sm rounded-lg shadow-sm"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -273,17 +273,17 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
       title: "Adult Programs: Best Sellers",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-2 sm:px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 text-center" variants={itemVariants}>
+          <motion.h1 className="text-3xl font-bold text-gray-900 mb-4 text-center" variants={itemVariants}>
             Adult Programs: Best Sellers
           </motion.h1>
           
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4" variants={containerVariants}>
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" variants={containerVariants}>
             <motion.div variants={itemVariants}>
               <ProgramCard 
                 title="Core Package" 
@@ -343,17 +343,17 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
       title: "More Adult Programs",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-2 sm:px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 text-center" variants={itemVariants}>
+          <motion.h1 className="text-3xl font-bold text-gray-900 mb-4 text-center" variants={itemVariants}>
             More Adult Programs
           </motion.h1>
           
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4" variants={containerVariants}>
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" variants={containerVariants}>
             <motion.div variants={itemVariants}>
               <ProgramCard 
                 title="Express Drive Package" 
@@ -412,17 +412,17 @@ const AdultProgramSlides: React.FC<AdultProgramSlidesProps> = () => {
 
   return (
     <div 
-      className="py-4 sm:py-6 px-2 sm:px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
-      {/* Background decorative elements - reduced size */}
+      {/* Background decorative elements */}
       <motion.div 
-        className="absolute -top-10 -left-10 w-20 h-20 bg-emerald-50 rounded-full opacity-30"
+        className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-50 rounded-full opacity-30"
         animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
         transition={{ duration: 0.8 }}
       ></motion.div>
       <motion.div 
-        className="absolute -bottom-10 -right-10 w-20 h-20 bg-emerald-50 rounded-full opacity-30"
+        className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-50 rounded-full opacity-30"
         animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       ></motion.div>

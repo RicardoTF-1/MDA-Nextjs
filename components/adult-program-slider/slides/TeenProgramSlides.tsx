@@ -188,7 +188,7 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
       title: "Teen Driver's Education Programs",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
@@ -203,11 +203,11 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
           
           {/* Full Width Layout */}
           <motion.div 
-            className="bg-gray-50 rounded-xl p-8 shadow-sm"
+            className="bg-gray-50 rounded-xl p-6 shadow-sm"
             variants={itemVariants}
           >
             <motion.h2 
-              className="text-2xl font-bold text-gray-800 mb-8 text-center"
+              className="text-2xl font-bold text-gray-800 mb-6 text-center"
               variants={itemVariants}
             >
               License Process
@@ -215,111 +215,111 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
             
             {/* Steps Layout */}
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-5xl mx-auto"
+              className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-5xl mx-auto"
               variants={stepsContainerVariants}
             >
               {/* Step 1 - Classroom */}
               <motion.div 
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center"
+                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
                 variants={stepVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
-                <div className="flex flex-col items-center mb-4">
-                  <div className="bg-gray-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold mb-2">1</div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className="bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mb-2">1</div>
                   <motion.div 
-                    className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                    className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <BookOpen size={32} className="text-white" />
+                    <BookOpen size={28} className="text-white" />
                   </motion.div>
                 </div>
-                <h3 className="font-semibold text-gray-800 text-lg mb-2">30 Hours Classroom</h3>
-                <p className="text-gray-600 text-sm">Complete driver's ed course</p>
+                <h3 className="font-semibold text-gray-800 text-base mb-1">30 Hours Classroom</h3>
+                <p className="text-gray-600 text-xs">Complete driver's ed course</p>
               </motion.div>
               
               {/* Step 2 - Permit Test */}
               <motion.div 
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center"
+                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
                 variants={stepVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
-                <div className="flex flex-col items-center mb-4">
-                  <div className="bg-gray-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold mb-2">2</div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className="bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mb-2">2</div>
                   <motion.div 
-                    className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                    className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </motion.div>
                 </div>
-                <h3 className="font-semibold text-gray-800 text-lg mb-2">Pass Permit Test</h3>
-                <p className="text-gray-600 text-sm">At local DMV office</p>
+                <h3 className="font-semibold text-gray-800 text-base mb-1">Pass Permit Test</h3>
+                <p className="text-gray-600 text-xs">At local DMV office</p>
               </motion.div>
               
               {/* Step 3 - BTW Training */}
               <motion.div 
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center"
+                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
                 variants={stepVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
-                <div className="flex flex-col items-center mb-4">
-                  <div className="bg-gray-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold mb-2">3</div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className="bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mb-2">3</div>
                   <motion.div 
-                    className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                    className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Car size={32} className="text-white" />
+                    <Car size={28} className="text-white" />
                   </motion.div>
                 </div>
-                <h3 className="font-semibold text-gray-800 text-lg mb-2">6 Hours BTW Training</h3>
-                <p className="text-gray-600 text-sm">With certified instructor</p>
+                <h3 className="font-semibold text-gray-800 text-base mb-1">6 Hours BTW Training</h3>
+                <p className="text-gray-600 text-xs">With certified instructor</p>
               </motion.div>
               
               {/* Step 4 - Practice */}
               <motion.div 
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center"
+                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
                 variants={stepVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
-                <div className="flex flex-col items-center mb-4">
-                  <div className="bg-gray-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold mb-2">4</div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className="bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mb-2">4</div>
                   <motion.div 
-                    className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                    className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </motion.div>
                 </div>
-                <h3 className="font-semibold text-gray-800 text-lg mb-2">50 Hours Practice</h3>
-                <p className="text-gray-600 text-sm">With licensed adult</p>
+                <h3 className="font-semibold text-gray-800 text-base mb-1">50 Hours Practice</h3>
+                <p className="text-gray-600 text-xs">With licensed adult</p>
               </motion.div>
               
               {/* Step 5 - Road Test */}
               <motion.div 
-                className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center"
+                className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
                 variants={stepVariants}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
-                <div className="flex flex-col items-center mb-4">
-                  <div className="bg-gray-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold mb-2">5</div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className="bg-gray-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mb-2">5</div>
                   <motion.div 
-                    className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                    className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Award size={32} className="text-white" />
+                    <Award size={28} className="text-white" />
                   </motion.div>
                 </div>
-                <h3 className="font-semibold text-gray-800 text-lg mb-2">Road Test</h3>
-                <p className="text-gray-600 text-sm">At age 16+ with 9mo permit</p>
+                <h3 className="font-semibold text-gray-800 text-base mb-1">Road Test</h3>
+                <p className="text-gray-600 text-xs">At age 16+ with 9mo permit</p>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -352,21 +352,21 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
       title: "Teen Driving Programs: Complete Program",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
           <motion.h1 
-            className="text-5xl font-bold text-gray-900 mb-10 text-center"
+            className="text-4xl font-bold text-gray-900 mb-8 text-center"
             variants={itemVariants}
           >
             Teen Driving Programs: Complete Program
           </motion.h1>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
             variants={cardsContainerVariants}
           >
             <motion.div variants={cardVariants}>
@@ -414,72 +414,8 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
             </motion.div>
           </motion.div>
           
-          <motion.div 
-            className="flex flex-col md:flex-row justify-center items-center bg-gray-50 rounded-xl p-6 mb-8"
-            variants={itemVariants}
-          >
-            <motion.div 
-              className="mb-4 md:mb-0 md:mr-8"
-              variants={itemVariants}
-            >
-              <motion.div 
-                className="font-bold text-lg mb-2"
-                variants={itemVariants}
-              >
-                Select your Location
-              </motion.div>
-              <motion.div 
-                className="flex justify-center gap-4 mt-2"
-                variants={itemVariants}
-              >
-                <motion.a 
-                  href="/chicago" 
-                  className="bg-emerald-500 text-white rounded-lg px-6 py-2 font-medium shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  CHICAGO
-                </motion.a>
-                <motion.a 
-                  href="/suburb" 
-                  className="bg-emerald-500 text-white rounded-lg px-6 py-2 font-medium shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  SUBURB
-                </motion.a>
-              </motion.div>
-            </motion.div>
-            <motion.div 
-              className="text-center"
-              variants={itemVariants}
-            >
-              <motion.div 
-                className="text-lg font-bold text-gray-700 mb-2"
-                variants={itemVariants}
-              >
-                DSS Page with Price
-              </motion.div>
-              <motion.div 
-                className="text-lg font-bold mb-2"
-                variants={itemVariants}
-              >
-                Click Here for more Options!
-              </motion.div>
-              <motion.a 
-                href="/teen-programs" 
-                className="text-red-500 font-medium hover:underline"
-                whileHover={{ scale: 1.05 }}
-              >
-                DSS Page For Teen Programs
-              </motion.a>
-            </motion.div>
-          </motion.div>
-          
           <motion.div variants={itemVariants}>
-            <TeenBottomSection 
-              redirectText="the Permit Prep Page"
-            />
+            <TeenBottomSection />
           </motion.div>
         </motion.div>
       )
@@ -489,21 +425,21 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
       title: "Teen Driving Programs: Behind-the-Wheel Training Options",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
           <motion.h1 
-            className="text-5xl font-bold text-gray-900 mb-10 text-center"
+            className="text-4xl font-bold text-gray-900 mb-8 text-center"
             variants={itemVariants}
           >
             Teen Driving Programs: Behind-the-Wheel Training Options
           </motion.h1>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
             variants={cardsContainerVariants}
           >
             <motion.div variants={cardVariants}>
@@ -542,9 +478,9 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
                 subtitleColor="emerald-400"
                 bestSeller={true}
                 points={[
-                  "Designed for teens <strong>with or without prior driving experience</strong> who need <strong>**basic training</strong>",
+                  "Designed for teens <strong>with or without prior driving experience</strong> who need <strong>basic training</strong>",
                   "Covers <strong>core driving techniques, parking skills, and defensive driving strategies</strong>",
-                  "Includes <strong>**12 hours of behind-the-wheel training**</strong>",
+                  "Includes <strong>12 hours of behind-the-wheel training</strong>",
                   "Increased hands-on practice, night driving basics and confidence-building"
                 ]}
                 icon={<Car />}
@@ -553,11 +489,7 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
           </motion.div>
           
           <motion.div variants={itemVariants}>
-            <TeenBottomSection 
-              redirectText="Teen Programs with DE"
-              mainLinkText="DSS Page For Teen Programs"
-              mainLink="/teen-programs"
-            />
+            <TeenBottomSection />
           </motion.div>
         </motion.div>
       )
@@ -567,21 +499,21 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
       title: "Teen Driving Programs: Behind-the-Wheel Training Options",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
           <motion.h1 
-            className="text-5xl font-bold text-gray-900 mb-10 text-center"
+            className="text-4xl font-bold text-gray-900 mb-8 text-center"
             variants={itemVariants}
           >
             Teen Driving Programs: Behind-the-Wheel Training Options
           </motion.h1>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
             variants={cardsContainerVariants}
           >
             <motion.div variants={cardVariants}>
@@ -629,11 +561,7 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
           </motion.div>
           
           <motion.div variants={itemVariants}>
-            <TeenBottomSection 
-              redirectText="Teen Programs with DE"
-              mainLinkText="DSS Page For Teen Programs"
-              mainLink="/teen-programs"
-            />
+            <TeenBottomSection />
           </motion.div>
         </motion.div>
       )
@@ -642,7 +570,7 @@ const TeenProgramSlides: React.FC<TeenProgramSlidesProps> = () => {
 
   return (
     <div 
-      className="py-12 px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
       {/* Background decorative elements */}

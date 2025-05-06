@@ -176,14 +176,14 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
       title: "Advanced Driving Skills",
       content: (
         <motion.div 
-          className="max-w-6xl mx-auto px-4"
+          className="max-w-6xl mx-auto px-4 py-12 h-[600px]"
           initial="hidden"
           animate={controls}
           exit="exit"
           variants={containerVariants}
         >
-          <motion.div className="text-center mb-10" variants={itemVariants}>
-            <motion.h1 className="text-5xl font-bold text-gray-900 mb-6" variants={itemVariants}>
+          <motion.div className="text-center mb-8" variants={itemVariants}>
+            <motion.h1 className="text-4xl font-bold text-gray-900 mb-4" variants={itemVariants}>
               Advanced Driving Skills
             </motion.h1>
             <motion.p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
@@ -216,7 +216,7 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
           </motion.div>
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
             variants={cardContainerVariants}
           >
             <motion.div variants={cardItemVariants}>
@@ -259,7 +259,7 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
           </motion.div>
           
           <motion.div className="text-center" variants={itemVariants}>
-            <motion.p className="text-xl mb-2" variants={itemVariants}>DSS Page Price for 2hrs and 4 hrs</motion.p>
+            <motion.p className="text-xl mb-2" variants={itemVariants}>Available in 2 hour and 4 hour options</motion.p>
             <motion.p className="text-gray-700 mb-4" variants={itemVariants}>
               ***Enrolling to these programs must already have a Driver's License. {' '}
               <motion.a 
@@ -271,7 +271,6 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
                 Click here if you need one!
               </motion.a>
             </motion.p>
-            <motion.p className="text-red-500" variants={itemVariants}>Redirected to Adult Programs Best Sellers</motion.p>
           </motion.div>
         </motion.div>
       )
@@ -280,7 +279,7 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
 
   return (
     <div 
-      className="py-12 px-4 bg-white relative overflow-hidden"
+      className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
       {/* Background decorative elements */}
@@ -295,14 +294,6 @@ const AdvancedDrivingSlides: React.FC<AdvancedDrivingSlidesProps> = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
       ></motion.div>
       
-      {/* Slide navigation */}
-      <SlideNavigation
-        currentSlide={currentSlide}
-        totalSlides={advancedSlides.length}
-        onPrevious={prevSlide}
-        onNext={nextSlide}
-        onSelect={goToSlide}
-      />
       
       {/* Slide content */}
       <div className="transition-all duration-500 ease-in-out">

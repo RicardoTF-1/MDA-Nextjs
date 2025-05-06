@@ -151,7 +151,7 @@ const PermitPrepContent: React.FC<PermitPrepContentProps> = () => {
 
   return (
     <motion.div 
-      className="py-12 px-4 bg-white"
+      className="py-12 px-4 bg-white h-[680px]"
       ref={containerRef}
       initial="hidden"
       animate={controls}
@@ -159,14 +159,14 @@ const PermitPrepContent: React.FC<PermitPrepContentProps> = () => {
     >
       <motion.div className="max-w-6xl mx-auto" variants={containerVariants}>
         <motion.h1 
-          className="text-5xl font-bold text-black mb-10"
+          className="text-4xl font-bold text-black mb-8"
           variants={itemVariants}
         >
           Permit Prep
         </motion.h1>
         
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
           variants={cardsContainerVariants}
         >
           {/* Expert Driver Package */}
@@ -218,7 +218,7 @@ const PermitPrepContent: React.FC<PermitPrepContentProps> = () => {
         </motion.div>
 
         <motion.div 
-          className="flex justify-between items-start mt-14"
+          className="flex justify-between items-start mt-8"
           variants={itemVariants}
         >
           <motion.div 
