@@ -1,251 +1,193 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useState, useEffect, MouseEvent } from 'react';
 import Link from 'next/link';
-import { fetchCarLessons } from '@/lib/api';
+import { usePathname } from 'next/navigation';
+import { fetchSiteSettings } from '../../lib/api';
+import Image from 'next/image';
 
-export default function CarLessonsPage() {
-  const [carLessonsData, setCarLessonsData] = useState(null);
-  const [activeSubcategory, setActiveSubcategory] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const router = useRouter();
+interface SiteSettings {
+  site_name: string;
+  logo_url: string | null;
+}
+
+const Header = (): React.ReactElement => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    site_name: 'My Drive Academy',
+    logo_url: null
+  });
+  const pathname = usePathname();
 
   useEffect(() => {
-    const loadCarLessons = async () => {
+    const loadSettings = async () => {
       try {
-        setIsLoading(true);
-        const data = await fetchCarLessons();
-        setCarLessonsData(data);
-        
-        // Set the first subcategory as active by default
-        if (data && data.subcategories && data.subcategories.length > 0) {
-          setActiveSubcategory(data.subcategories[0]);
-        }
+        const data = await fetchSiteSettings();
+        setSiteSettings(data);
       } catch (err) {
-        console.error('Error loading car lessons:', err);
-        setError('Could not load car lessons data');
-      } finally {
-        setIsLoading(false);
+        console.error('Error loading settings:', err);
       }
     };
-
-    loadCarLessons();
+    loadSettings();
   }, []);
 
-  const handleSubcategoryClick = (subcategory) => {
-    setActiveSubcategory(subcategory);
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  const isHomePage = pathname === '/';
+  const isKnowledgeHub = pathname === '/knowledge-hub';
+
+  const headerClass = `${isHomePage ? 'fixed' : 'relative'} top-0 left-0 right-0 z-50 transition-all ${
+    isScrolled || isKnowledgeHub ? 'bg-black/30 backdrop-blur-sm' : 'bg-transparent'
+  }`;
+
+  useEffect(() => {
+    document.body.style.paddingTop = '0px';
+    return () => {
+      document.body.style.paddingTop = '0px';
+    };
+  }, [isHomePage]);
+
+  const scrollToSection = (id: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    if (isHomePage) {
+      e.preventDefault();
+      const section = document.getElementById(id);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }, 500);
+      }
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="py-16 container mx-auto px-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-6">In-Car Lessons</h1>
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !carLessonsData) {
-    return (
-      <div className="py-16 container mx-auto px-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-6">In-Car Lessons</h1>
-          <div className="text-red-500">{error || "No car lessons data available"}</div>
-        </div>
-      </div>
-    );
-  }
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const handleNavLinkClick = () => setIsMenuOpen(false);
 
   return (
-    <div className="bg-gray-50">
-      {/* Banner/Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-500 py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">In-Car Lessons</h1>
-        </div>
-      </div>
+    <header className={headerClass}>
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center">
+          <Link href="/" className="flex items-center">
+            {siteSettings.logo_url ? (
+              <div className="h-17 relative w-[150px]">
+                <Image
+                  src={siteSettings.logo_url}
+                  alt={siteSettings.site_name}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            ) : (
+              <span className="text-white text-2xl font-bold flex items-center">
+                <svg className="w-8 h-8 mr-2 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z" />
+                </svg>
+                {siteSettings.site_name}
+              </span>
+            )}
+          </Link>
 
-      {/* Location Finder Section */}
-      <section className="py-12 bg-emerald-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">Find a location near you</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Sample location cards - replace with actual location data */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative h-40 bg-gray-300">
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h3 className="text-white text-xl font-bold">Bridgeview & Worth</h3>
-                </div>
-              </div>
-              <div className="p-4 text-center">
-                <Link 
-                  href="/locations/bridgeview"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
-                >
-                  Go To Location
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative h-40 bg-gray-300">
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h3 className="text-white text-xl font-bold">Chicago</h3>
-                </div>
-              </div>
-              <div className="p-4 text-center">
-                <Link 
-                  href="/locations/chicago"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
-                >
-                  Go To Location
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative h-40 bg-gray-300">
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h3 className="text-white text-xl font-bold">Naperville & Aurora</h3>
-                </div>
-              </div>
-              <div className="p-4 text-center">
-                <Link 
-                  href="/locations/naperville"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
-                >
-                  Go To Location
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative h-40 bg-gray-300">
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h3 className="text-white text-xl font-bold">Little Village</h3>
-                </div>
-              </div>
-              <div className="p-4 text-center">
-                <Link 
-                  href="/locations/little-village"
-                  className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
-                >
-                  Go To Location
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Tabs Section */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          {/* Main Category Tabs */}
-          <div className="flex overflow-x-auto mb-6">
-            <Link 
-              href="/courses/teen-programs"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-transparent hover:border-green-500 mr-4"
-            >
-              Teen Programs
-            </Link>
-            <Link 
-              href="/courses/classroom-courses"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-transparent hover:border-green-500 mr-4"
-            >
-              Classroom Courses
-            </Link>
-            <Link 
-              href="/courses/in-car-lessons"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-green-500 text-green-600 font-medium mr-4"
-            >
-              In-Car Lessons
-            </Link>
-            <Link 
-              href="/courses/license-c"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-transparent hover:border-green-500 mr-4"
-            >
-              License C
-            </Link>
-            <Link 
-              href="/courses/foreign-drivers"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-transparent hover:border-green-500 mr-4"
-            >
-              Foreign Drivers
-            </Link>
-            <Link 
-              href="/courses/illinois-permit-prep"
-              className="whitespace-nowrap px-4 py-2 border-b-2 border-transparent hover:border-green-500"
-            >
-              Illinois Permit Prep
-            </Link>
-          </div>
-
-          {/* Subcategory Buttons */}
-          <div className="flex flex-wrap justify-center mb-8">
-            {carLessonsData.subcategories.map((subcategory) => (
-              <button
-                key={subcategory.id}
-                onClick={() => handleSubcategoryClick(subcategory)}
-                className={`m-2 px-6 py-2 rounded-full transition-colors ${
-                  activeSubcategory && activeSubcategory.id === subcategory.id
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                }`}
+          <div className="hidden md:flex items-center space-x-4">
+            <nav className="flex space-x-6">
+              <a
+                href={isHomePage ? '#adult-programs-section' : '/courses'}
+                onClick={(e) => {
+                  scrollToSection('adult-programs-section')(e);
+                }}
+                className="py-2 text-white hover:text-emerald-600 transition cursor-pointer"
               >
-                {subcategory.title}
+                COURSES
+              </a>
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition">
+                LOCATIONS
+              </Link>
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition">
+                KNOWLEDGE HUB
+              </Link>
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition">
+                ABOUT
+              </Link>
+            </nav>
+
+            <div className="flex space-x-2 items-center">
+              <button className="text-white p-2 rounded-full hover:bg-white/10 transition">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
               </button>
-            ))}
+              <Link
+                href="/contact"
+                className="px-6 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-800 transition"
+              >
+                Contact Us
+              </Link>
+            </div>
           </div>
 
-          {/* Active Subcategory Content */}
-          {activeSubcategory && (
-            <div className="subcategory-content animate-fadeIn">
-              {/* Top section with image and text */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div className="md:col-span-1">
-                  {activeSubcategory.image_url ? (
-                    <Image
-                      src={activeSubcategory.image_url}
-                      alt={activeSubcategory.title}
-                      width={500}
-                      height={350}
-                      className="rounded-xl w-full h-auto object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-64 bg-gray-300 rounded-xl flex items-center justify-center">
-                      <span className="text-gray-500">Image not available</span>
-                    </div>
-                  )}
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-gray-700 leading-relaxed mb-4">
-                    {activeSubcategory.description}
-                  </p>
-                </div>
-              </div>
+          <button
+            className="md:hidden text-white"
+            onClick={toggleMenu}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
 
-              {/* Course Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {activeSubcategory.courses && activeSubcategory.courses.length > 0 ? (
-                  activeSubcategory.courses.map((course) => (
-                    <div key={course.id} className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
-                      {/* Card Header */}
-                      <div className={`bg-${course.header_color === 'warning' ? 'yellow-500' : course.header_color === 'primary' ? 'blue-700' : 'gray-800'} p-4 relative ${course.header_color === 'warning' ? 'text-gray-800' : 'text-white'}`}>
-                        <h3 className="font-bold text-lg">{course.title}</h3>
-                        {course.subtitle && <p className="text-sm">{course.subtitle}</p>}
-                        {course.has_free_pickup && (
-                          <p className="text-green-300 text-sm font-medium">Free Pickup</p>
-                        )}
-                        {course.is_featured && (
-                          <div className="absolute top-2 right-2 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-gray-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-800" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 bg-gray-800 bg-opacity-90 rounded p-4">
+            <nav className="flex flex-col space-y-2">
+              <a
+                href={isHomePage ? '#adult-programs-section' : '/courses'}
+                onClick={(e) => {
+                  scrollToSection('adult-programs-section')(e);
+                  handleNavLinkClick();
+                }}
+                className="py-2 text-white hover:text-emerald-600 transition"
+              >
+                COURSES
+              </a>
+              <Link href="/locations" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
+                LOCATIONS
+              </Link>
+              <Link href="/knowledge-hub" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
+                KNOWLEDGE HUB
+              </Link>
+              <Link href="/about" className="py-2 text-white hover:text-emerald-600 transition" onClick={handleNavLinkClick}>
+                ABOUT
+              </Link>
+            </nav>
+            <div className="flex flex-col space-y-2 mt-4">
+              <Link href="/contact" className="px-4 py-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition text-center" onClick={handleNavLinkClick}>
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Header;
+

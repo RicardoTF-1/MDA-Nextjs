@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import Script from 'next/script';
 
 export default function CallAssistant() {
@@ -16,3 +15,4 @@ export default function CallAssistant() {
     </div>
   );
 }
+

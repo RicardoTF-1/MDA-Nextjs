@@ -1,13 +1,13 @@
 // app/courses/page.tsx
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react'; // ✅ removed useRef
 import Link from 'next/link';
 import { fetchCourseCategories } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
-// Define interfaces for our data types
+// Interfaces
 interface CourseCategory {
   id: number;
   name: string;
@@ -23,10 +23,9 @@ interface CourseCategoryCardProps {
   description: string;
   link: string;
   iconSvg: string | null;
-  index: number;
 }
 
-// Animation variants
+// Animations
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -51,101 +50,92 @@ const itemVariants = {
   }
 };
 
-// CourseCard component with proper typing
-const CourseCard: React.FC<CourseCategoryCardProps> = ({ 
-  title, 
-  description, 
-  link, 
-  iconSvg,
-  index
-}) => {
-  return (
-    <motion.div
-      variants={itemVariants}
-      initial="hidden"
-      animate="visible"
-      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-    >
-      <Link href={link}>
-        <motion.div 
-          className="p-6"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-emerald-600">
-            {iconSvg ? (
-              <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
-            ) : (
-              // Fallback icon if no SVG is provided
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-            )}
-          </div>
-          <h3 className="text-xl font-bold mb-2">{title}</h3>
-          <p className="text-gray-600 mb-4">{description}</p>
-          <motion.div 
-            className="flex items-center text-emerald-500 font-medium"
-            whileHover={{ x: 5 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <span>Learn more</span>
-            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </motion.div>
-        </motion.div>
-      </Link>
-    </motion.div>
-  );
-};
-
-// Loading component to show while fetching data
-const LoadingSkeleton: React.FC = () => {
-  return (
-    <div className="animate-pulse">
-      <div className="bg-gray-200 h-12 w-2/3 mx-auto mb-12 rounded"></div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {[...Array(6)].map((_, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden p-6">
-            <div className="w-12 h-12 rounded-full bg-gray-200 mb-4"></div>
-            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded mb-1"></div>
-            <div className="h-4 bg-gray-200 rounded mb-1"></div>
-            <div className="h-4 bg-gray-200 rounded mb-4 w-2/3"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Error component to show if data fetching fails
-const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => {
-  return (
-    <div className="text-center py-10">
-      <div className="text-red-500 text-2xl mb-4">Error Loading Courses</div>
-      <p className="text-gray-600">{message}</p>
-      <motion.button 
-        onClick={() => window.location.reload()} 
-        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+// CourseCard
+const CourseCard: React.FC<CourseCategoryCardProps> = ({
+  title,
+  description,
+  link,
+  iconSvg
+}) => (
+  <motion.div
+    variants={itemVariants}
+    initial="hidden"
+    animate="visible"
+    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+  >
+    <Link href={link}>
+      <motion.div
+        className="p-6"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        Try Again
-      </motion.button>
-    </div>
-  );
-};
+        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4 text-emerald-600">
+          {iconSvg ? (
+            <div dangerouslySetInnerHTML={{ __html: iconSvg }} />
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          )}
+        </div>
+        <h3 className="text-xl font-bold mb-2">{title}</h3>
+        <p className="text-gray-600 mb-4">{description}</p>
+        <motion.div
+          className="flex items-center text-emerald-500 font-medium"
+          whileHover={{ x: 5 }}
+          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
+          <span>Learn more</span>
+          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </motion.div>
+      </motion.div>
+    </Link>
+  </motion.div>
+);
 
-// Main component
+// Loading
+const LoadingSkeleton: React.FC = () => (
+  <div className="animate-pulse">
+    <div className="bg-gray-200 h-12 w-2/3 mx-auto mb-12 rounded"></div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      {[...Array(6)].map((_, index) => (
+        <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden p-6">
+          <div className="w-12 h-12 rounded-full bg-gray-200 mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded mb-1"></div>
+          <div className="h-4 bg-gray-200 rounded mb-1"></div>
+          <div className="h-4 bg-gray-200 rounded mb-4 w-2/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Error display
+const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => (
+  <div className="text-center py-10">
+    <div className="text-red-500 text-2xl mb-4">Error Loading Courses</div>
+    <p className="text-gray-600">{message}</p>
+    <motion.button
+      onClick={() => window.location.reload()}
+      className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      Try Again
+    </motion.button>
+  </div>
+);
+
+// Main Page
 export default function CoursesPage(): JSX.Element {
   const [categories, setCategories] = useState<CourseCategory[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Setup intersection observer with a 10% threshold
+
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: false
@@ -192,7 +182,7 @@ export default function CoursesPage(): JSX.Element {
   return (
     <div className="bg-gray-50 py-16">
       <div className="container mx-auto px-4">
-        <motion.h1 
+        <motion.h1
           className="text-4xl text-gray-700 font-bold text-center mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -200,9 +190,9 @@ export default function CoursesPage(): JSX.Element {
         >
           Our Courses
         </motion.h1>
-        
+
         {categories.length === 0 ? (
-          <motion.p 
+          <motion.p
             className="text-center text-gray-600"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -212,20 +202,19 @@ export default function CoursesPage(): JSX.Element {
           </motion.p>
         ) : (
           <div ref={ref} className="max-w-6xl mx-auto">
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 text-gray-700 md:grid-cols-2 lg:grid-cols-3 gap-8"
               variants={containerVariants}
               initial="hidden"
               animate={inView ? "visible" : "hidden"}
             >
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <CourseCard
                   key={category.id}
                   title={category.name}
                   description={category.description || 'Learn more about this course category.'}
                   link={`/courses/${category.slug}`}
                   iconSvg={category.icon_svg}
-                  index={index}
                 />
               ))}
             </motion.div>
@@ -235,3 +224,4 @@ export default function CoursesPage(): JSX.Element {
     </div>
   );
 }
+

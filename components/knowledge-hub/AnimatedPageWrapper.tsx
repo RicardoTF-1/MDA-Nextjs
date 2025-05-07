@@ -9,7 +9,7 @@ interface AnimatedPageWrapperProps {
 }
 
 export default function AnimatedPageWrapper({ children }: AnimatedPageWrapperProps) {
-  const [ref, inView] = useInView({
+  const [ref] = useInView({
     threshold: 0.1,
     triggerOnce: true
   });
@@ -36,3 +36,4 @@ export default function AnimatedPageWrapper({ children }: AnimatedPageWrapperPro
     </motion.div>
   );
 }
+

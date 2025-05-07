@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { fetchLocations } from '@/lib/api';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 interface Location {
   id: number;
@@ -19,24 +19,23 @@ interface Location {
   email?: string;
 }
 
-// Simple Location Card Component with hover pause functionality
-const LocationCard = ({ 
-  location, 
-  isActive, 
-  onClick, 
+const LocationCard = ({
+  location,
+  isActive,
+  onClick,
   variants,
   onMouseEnter,
-  onMouseLeave 
-}: { 
+  onMouseLeave
+}: {
   location: Location;
   isActive: boolean;
   onClick: () => void;
-  variants: any;
+  variants: Variants;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) => {
   return (
-    <motion.div 
+    <motion.div
       className={`
         flex-shrink-0 w-72 mx-3 bg-white rounded-lg border border-gray-200 overflow-hidden 
         shadow-sm hover:shadow-md cursor-pointer
@@ -44,16 +43,17 @@ const LocationCard = ({
       `}
       onClick={onClick}
       variants={variants}
-      whileHover={{ 
-        y: -5, 
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" 
+      whileHover={{
+        y: -5,
+        boxShadow:
+          '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       {location.image_url && (
         <div className="p-4">
-          <div 
+          <div
             className="h-40 bg-center bg-cover rounded-md"
             style={{ backgroundImage: `url(${location.image_url})` }}
           />
@@ -63,11 +63,13 @@ const LocationCard = ({
         <h3 className="font-bold text-gray-900 text-sm">{location.name}</h3>
         <address className="text-gray-600 text-xs mt-2 not-italic">
           <div>{location.address}</div>
-          <div>{location.city}, {location.state} {location.zip_code}</div>
+          <div>
+            {location.city}, {location.state} {location.zip_code}
+          </div>
           <div className="mt-1">{location.phone}</div>
           {location.email && <div className="mt-1">{location.email}</div>}
         </address>
-        <motion.a 
+        <motion.a
           href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
             `${location.address}, ${location.city}, ${location.state} ${location.zip_code}`
           )}`}
@@ -85,7 +87,6 @@ const LocationCard = ({
 };
 
 export default function LocationFinder(): React.ReactElement {
-  // State declarations
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,174 +95,105 @@ export default function LocationFinder(): React.ReactElement {
   const [position, setPosition] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  
-  // Refs
+
   const sliderRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  
-  // Intersection Observer for scroll-based animations
+
   useEffect(() => {
+    const currentSection = sectionRef.current;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Activate animation when section is at least 10% visible
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        } else {
-          // Reset state when out of view to repeat animation on next scroll
-          setIsVisible(false);
-        }
+        setIsVisible(entry.isIntersecting);
       },
-      {
-        root: null, // viewport
-        rootMargin: '0px',
-        threshold: 0.1 // 10% visibility
-      }
+      { threshold: 0.1 }
     );
-    
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-    
+
+    if (currentSection) observer.observe(currentSection);
+
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
+      if (currentSection) observer.unobserve(currentSection);
     };
   }, []);
 
-  // Filter locations by search query
-  const filteredLocations = locations.filter(location => {
+  const filteredLocations = locations.filter((location) => {
     if (!searchQuery) return true;
-    
-    const searchLower = searchQuery.toLowerCase();
+    const s = searchQuery.toLowerCase();
     return (
-      location.name.toLowerCase().includes(searchLower) ||
-      location.city.toLowerCase().includes(searchLower) ||
-      location.state.toLowerCase().includes(searchLower) ||
-      location.zip_code.toLowerCase().includes(searchLower)
+      location.name.toLowerCase().includes(s) ||
+      location.city.toLowerCase().includes(s) ||
+      location.state.toLowerCase().includes(s) ||
+      location.zip_code.toLowerCase().includes(s)
     );
   });
-  
-  // Duplicate locations for slider effect (but only if more than one)
-  const displayLocations = filteredLocations.length > 1 
-    ? [...filteredLocations, ...filteredLocations] 
-    : filteredLocations;
-  
-  // 1. Fetch locations from API
+
+  const displayLocations =
+    filteredLocations.length > 1
+      ? [...filteredLocations, ...filteredLocations]
+      : filteredLocations;
+
   useEffect(() => {
-    const loadLocations = async () => {
+    const load = async () => {
       try {
         setLoading(true);
         const data = await fetchLocations();
         setLocations(data);
-        if (data.length > 0) {
-          setActiveLocation(data[0].id);
-        }
+        if (data.length > 0) setActiveLocation(data[0].id);
       } catch (err) {
-        console.error('Error loading locations:', err);
+        console.error('Error fetching locations:', err); // ✅ ahora se usa
         setError('Could not load locations');
-        // Sample data for fallback
-        const sampleData: Location[] = [
+        const fallback: Location[] = [
           {
             id: 1,
-            name: "Ashland Office",
-            address: "1325 N Ashland Ave",
-            city: "Chicago",
-            state: "Illinois",
-            zip_code: "60647",
-            phone: "(630) 760-2255",
-            email: "support@mydriveacademy.com",
-            image_url: "/images/locations/ashland-office.jpg"
+            name: 'Ashland Office',
+            address: '1325 N Ashland Ave',
+            city: 'Chicago',
+            state: 'Illinois',
+            zip_code: '60647',
+            phone: '(630) 760-2255',
+            email: 'support@mydriveacademy.com',
+            image_url: '/images/locations/ashland-office.jpg'
           },
           {
             id: 2,
-            name: "Little Village",
-            address: "3547 W 26th St",
-            city: "Chicago",
-            state: "Illinois",
-            zip_code: "60623",
-            phone: "(630) 760-2255",
-            email: "support@mydriveacademy.com",
-            image_url: "/images/locations/little-village.jpg"
-          },
-          {
-            id: 3,
-            name: "Naperville Office",
-            address: "1320 N Route 59 #120",
-            city: "Naperville",
-            state: "Illinois",
-            zip_code: "60563",
-            phone: "(630) 760-2255",
-            email: "support@mydriveacademy.com",
-            image_url: "/images/locations/naperville.jpg"
-          },
-          {
-            id: 4,
-            name: "Worth Office",
-            address: "11015 S. Harlem Ave., Unit G",
-            city: "Worth",
-            state: "Illinois",
-            zip_code: "60482",
-            phone: "(630) 760-2255",
-            email: "support@mydriveacademy.com",
-            image_url: "/images/locations/worth-office.jpg"
-          },
-          {
-            id: 5,
-            name: "Northside Classroom",
-            address: "4020 W Glenlake Ave",
-            city: "Chicago",
-            state: "Illinois",
-            zip_code: "60646",
-            phone: "(630) 760-2255",
-            email: "support@mydriveacademy.com",
-            image_url: "/images/locations/northside-classroom.jpg"
+            name: 'Little Village',
+            address: '3547 W 26th St',
+            city: 'Chicago',
+            state: 'Illinois',
+            zip_code: '60623',
+            phone: '(630) 760-2255',
+            email: 'support@mydriveacademy.com',
+            image_url: '/images/locations/little-village.jpg'
           }
         ];
-        setLocations(sampleData);
-        if (sampleData.length > 0) {
-          setActiveLocation(sampleData[0].id);
-        }
+        setLocations(fallback);
+        setActiveLocation(fallback[0].id);
       } finally {
         setLoading(false);
       }
     };
-    
-    loadLocations();
+    load();
   }, []);
 
-  // 2. Setup slider animation - manages pausing and resuming without position reset
   useEffect(() => {
-    // Only clear interval if we need to create a new one
-    // This prevents position reset when pausing/resuming
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    
-    // Don't animate if paused or if only one result
+
     if (isPaused || filteredLocations.length <= 1) return;
-    
-    // Calculate the total width of all cards
-    const cardWidth = 288; // card width (272) + margin (16)
+
+    const cardWidth = 288;
     const totalWidth = filteredLocations.length * cardWidth;
-    
-    // Start the interval for smooth scrolling
+
     intervalRef.current = setInterval(() => {
-      setPosition(prev => {
-        // Move by small increments for smooth animation
-        const newPos = prev + 1;
-        
-        // Reset when we reach the end of the first set of cards
-        if (newPos >= totalWidth) {
-          return 0;
-        }
-        return newPos;
+      setPosition((prev) => {
+        const next = prev + 1;
+        return next >= totalWidth ? 0 : next;
       });
-    }, 20); // Update every 20ms for smooth animation
-    
-    // Cleanup on unmount
+    }, 20);
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -269,77 +201,54 @@ export default function LocationFinder(): React.ReactElement {
       }
     };
   }, [filteredLocations.length, isPaused]);
-  
-  // Reset position only when filtered results change, not on pause/resume
+
   useEffect(() => {
     setPosition(0);
   }, [filteredLocations.length]);
-  
-  // Handlers for hover pause
-  const handleMouseEnter = () => {
-    setIsPaused(true);
-  };
-  
-  const handleMouseLeave = () => {
-    setIsPaused(false);
-  };
 
-  // Animation variants
-  const containerVariants = {
+  const handleMouseEnter = () => setIsPaused(true);
+  const handleMouseLeave = () => setIsPaused(false);
+
+  const containerVariants: Variants = {
     hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    visible: { transition: { staggerChildren: 0.1 } }
   };
 
-  const titleVariants = {
+  const titleVariants: Variants = {
     hidden: { y: 30, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
+      transition: { duration: 0.6, ease: 'easeOut' }
     }
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 12
-      }
+      transition: { type: 'spring', stiffness: 100, damping: 12 }
     }
   };
 
-  const mapVariants = {
+  const mapVariants: Variants = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
-      transition: {
-        delay: 0.2,
-        duration: 0.5,
-        ease: "easeOut"
-      }
+      transition: { delay: 0.2, duration: 0.5, ease: 'easeOut' }
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-[300px] flex items-center justify-center" ref={sectionRef}>
-        <motion.div 
+        <motion.div
           className="rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        ></motion.div>
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        />
       </div>
     );
   }
@@ -350,17 +259,17 @@ export default function LocationFinder(): React.ReactElement {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
+          animate={isVisible ? 'visible' : 'hidden'}
         >
-          <motion.h2 
+          <motion.h2
             className="text-2xl text-gray-700 font-bold text-center mb-6"
             variants={titleVariants}
           >
             Find a location near you
           </motion.h2>
-          
+
           {error && (
-            <motion.div 
+            <motion.div
               className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 text-sm"
               variants={titleVariants}
             >
@@ -368,12 +277,8 @@ export default function LocationFinder(): React.ReactElement {
               <p className="text-yellow-700">Showing sample data.</p>
             </motion.div>
           )}
-          
-          {/* Search input */}
-          <motion.div 
-            className="mb-6 max-w-md mx-auto"
-            variants={titleVariants}
-          >
+
+          <motion.div className="mb-6 max-w-md mx-auto" variants={titleVariants}>
             <div className="relative">
               <input
                 type="text"
@@ -383,34 +288,32 @@ export default function LocationFinder(): React.ReactElement {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <svg 
-                  className="h-4 w-4 text-gray-400" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
               </div>
             </div>
           </motion.div>
-          
+
           <div className="flex flex-col gap-6">
-            {/* Location cards slider */}
             {filteredLocations.length > 0 ? (
-              <motion.div 
+              <motion.div
                 className="relative overflow-hidden py-4"
                 variants={containerVariants}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
-                {/* Simplified slider container */}
-                <div 
+                <div
                   ref={sliderRef}
                   className="flex"
                   style={{ transform: `translateX(-${position}px)` }}
@@ -429,26 +332,27 @@ export default function LocationFinder(): React.ReactElement {
                 </div>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 className="text-center py-6 bg-white rounded-lg border border-gray-200"
                 variants={titleVariants}
               >
-                <p className="text-gray-500">No locations found matching your search</p>
+                <p className="text-gray-500">
+                  No locations found matching your search
+                </p>
               </motion.div>
             )}
 
-            {/* Fixed embedded Google Map with your provided iframe */}
-            <motion.div 
+            <motion.div
               className="h-[400px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
               variants={mapVariants}
             >
-              <iframe 
-                src="https://www.google.com/maps/d/embed?mid=12s7xHe8F697wi2Wlm-dyIz9q9lpchY4&ehbc=2E312F" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={true} 
-                loading="lazy" 
+              <iframe
+                src="https://www.google.com/maps/d/embed?mid=12s7xHe8F697wi2Wlm-dyIz9q9lpchY4&ehbc=2E312F"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
             </motion.div>
@@ -458,8 +362,4 @@ export default function LocationFinder(): React.ReactElement {
     </div>
   );
 }
-
-
-
-
 

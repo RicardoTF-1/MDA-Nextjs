@@ -1,122 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
-// Define TypeScript interfaces
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  post_count?: number;
-}
-
-interface CategoryTabsProps {
-  categories: Category[];
-}
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0, y: -10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      staggerChildren: 0.08
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: -10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 20
-    }
-  }
-};
-
-export default function CategoryTabs({ categories }: CategoryTabsProps) {
-  const router = useRouter();
+export default function BlogSidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentCategory = searchParams?.get('category') || 'all';
-  
-  // Setup intersection observer for animation
+
   const [ref, inView] = useInView({
     threshold: 0.1,
-    triggerOnce: false
+    triggerOnce: true,
   });
-  
-  const handleCategoryChange = (categorySlug: string) => {
-    const params = new URLSearchParams(searchParams?.toString());
-    
-    if (categorySlug === 'all') {
-      params.delete('category');
-    } else {
-      params.set('category', categorySlug);
-    }
-    
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  if (!categories || categories.length === 0) {
-    return null;
-  }
 
   return (
-    <motion.div 
+    <motion.aside
       ref={ref}
-      className="mb-8 overflow-x-auto"
-      variants={containerVariants}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5 }}
+      className="w-full md:w-1/3 p-4 bg-gray-50 rounded-lg shadow-md"
     >
-      <div className="flex space-x-2 pb-2">
-        <motion.button
-          variants={itemVariants}
-          onClick={() => handleCategoryChange('all')}
-          className={`px-4 py-2 rounded-md whitespace-nowrap ${
-            currentCategory === 'all'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-          }`}
-          whileHover={{ y: -2 }}
-          whileTap={{ y: 0 }}
-        >
-          All Posts
-        </motion.button>
-        
-        {categories.map((category) => (
-          <motion.button
-            key={category.id}
-            variants={itemVariants}
-            onClick={() => handleCategoryChange(category.slug)}
-            className={`px-4 py-2 rounded-md whitespace-nowrap ${
-              currentCategory === category.slug
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-            }`}
-            whileHover={{ y: -2 }}
-            whileTap={{ y: 0 }}
-          >
-            {category.name}
-            {category.post_count !== undefined && category.post_count > 0 && (
-              <span className="ml-2 text-xs px-2 py-1 rounded-full bg-opacity-80 inline-block">
-                {category.post_count}
-              </span>
-            )}
-          </motion.button>
-        ))}
+      <h3 className="text-lg font-bold mb-4 text-gray-800">Explore More</h3>
+
+      <div className="mb-6">
+        <p className="text-sm text-gray-600">
+          Discover related articles, categories and resources in our knowledge hub.
+        </p>
       </div>
-    </motion.div>
+
+      {/* Example Section: Featured image or callout */}
+      <div className="relative h-40 w-full mb-4 rounded overflow-hidden">
+        <Image
+          src="/images/sidebar-placeholder.jpg"
+          alt="Featured"
+          fill
+          className="object-cover"
+        />
+      </div>
+
+      <div className="text-sm text-gray-500">
+        <p>Current path: <span className="text-gray-800">{pathname}</span></p>
+      </div>
+    </motion.aside>
   );
 }
+

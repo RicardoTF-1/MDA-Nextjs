@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -104,8 +103,8 @@ const SubcategorySection = ({ subcategory, categorySlug }) => {
       {subcategory.courses && subcategory.courses.length > 0 && (
         <div className="mt-8 text-center text-gray-600 max-w-3xl mx-auto border-t pt-6">
           <p>
-            Students enrolling in any of these packages must have a learner's permit and submit proof that they have 
-            successfully completed a Driver's Education class, either in high school or at a private driving school.
+            Students enrolling in any of these packages must have a learner&apos;s permit and submit proof that they have 
+            successfully completed a Driver&apos;s Education class, either in high school or at a private driving school.
           </p>
         </div>
       )}
@@ -114,3 +113,4 @@ const SubcategorySection = ({ subcategory, categorySlug }) => {
 };
 
 export default SubcategorySection;
+

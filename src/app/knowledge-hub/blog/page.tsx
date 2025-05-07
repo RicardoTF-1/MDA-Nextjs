@@ -1,4 +1,3 @@
-// src/app/knowledge-hub/blog/page.tsx
 import { Suspense } from 'react';
 import { fetchBlogPosts, fetchBlogCategories } from '@/lib/api';
 import BlogList from '@/components/knowledge-hub/BlogList';
@@ -6,7 +5,6 @@ import CategoryTabs from '@/components/knowledge-hub/CategoryTabs';
 import BlogSidebar from '@/components/knowledge-hub/BlogSidebar';
 import LoadingArticles from '@/components/knowledge-hub/LoadingArticles';
 import AnimatedPageWrapper from '@/components/knowledge-hub/AnimatedPageWrapper';
-import { motion } from 'framer-motion';
 
 export const metadata = {
   title: 'Blog | My Drive Academy',
@@ -19,19 +17,23 @@ interface SearchParams {
   page?: string;
 }
 
+// Change the type to expect searchParams as a resolved value (non-promise)
 export default async function BlogPage({ searchParams }: { searchParams: SearchParams }) {
-  const categorySlug = searchParams.category;
-  const searchQuery = searchParams.search;
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  
+  // Destructure searchParams directly
+  const { category, search, page } = searchParams;
+
+  const categorySlug = category;
+  const searchQuery = search;
+  const pageNumber = page ? parseInt(page) : 1;
+
   // Fetch data
   const [posts, categories] = await Promise.all([
     fetchBlogPosts({
       category: categorySlug,
       search: searchQuery,
-      page
+      page: pageNumber,
     }),
-    fetchBlogCategories()
+    fetchBlogCategories(),
   ]);
 
   return (
@@ -47,7 +49,7 @@ export default async function BlogPage({ searchParams }: { searchParams: SearchP
           <Suspense fallback={<LoadingArticles count={6} columns={2} />}>
             <BlogList
               posts={posts}
-              currentPage={page}
+              currentPage={pageNumber}
               categorySlug={categorySlug}
               searchQuery={searchQuery}
             />
@@ -64,3 +66,4 @@ export default async function BlogPage({ searchParams }: { searchParams: SearchP
     </AnimatedPageWrapper>
   );
 }
+

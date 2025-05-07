@@ -3,176 +3,98 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BookOpen, Car } from 'lucide-react';
 import { motion, useAnimation, Variants } from 'framer-motion';
-import { SlideProps } from '../types';
 import ClassCProgramCard from '../cards/ClassCProgramCard';
 import SlideNavigation from '../common/SlideNavigation';
-import LocationDropdown from '../common/LocationDropdown';
 
-interface ClassCProgramSlidesProps {
-  // Add props for API integration if needed
-}
-
-// Animation variants
 const containerVariants: Variants = {
-  hidden: { 
-    opacity: 0,
-  },
-  visible: { 
+  hidden: { opacity: 0 },
+  visible: {
     opacity: 1,
-    transition: { 
-      duration: 0.5,
-      when: "beforeChildren",
-      staggerChildren: 0.1
-    }
+    transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.1 }
   },
   exit: {
     opacity: 0,
-    transition: {
-      duration: 0.3,
-      when: "afterChildren",
-    }
+    transition: { duration: 0.3, when: "afterChildren" }
   }
 };
 
 const itemVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    y: 20 
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut"
-    }
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    transition: {
-      duration: 0.3
-    }
-  }
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.3 } }
 };
 
 const cardsContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      delayChildren: 0.3,
-      staggerChildren: 0.15
-    }
+    transition: { delayChildren: 0.3, staggerChildren: 0.15 }
   }
 };
 
 const cardVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    y: 30,
-    scale: 0.95
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut"
-    }
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.6, ease: "easeOut" }
   }
 };
 
 const logoVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    scale: 0.9 
-  },
-  visible: { 
-    opacity: 1, 
-    scale: 1,
-    transition: {
-      duration: 0.3
-    }
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1, scale: 1,
+    transition: { duration: 0.3 }
   }
 };
 
-const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
+const ClassCProgramSlides: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [observerInitialized, setObserverInitialized] = useState(false);
 
-  // Functions for slide navigation
-  const nextSlide = (): void => {
-    setCurrentSlide((prev) => (prev === classCSlides.length - 1 ? 0 : prev + 1));
-  };
+  const nextSlide = () => setCurrentSlide(prev => (prev === classCSlides.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setCurrentSlide(prev => (prev === 0 ? classCSlides.length - 1 : prev - 1));
+  const goToSlide = (index: number) => setCurrentSlide(index);
 
-  const prevSlide = (): void => {
-    setCurrentSlide((prev) => (prev === 0 ? classCSlides.length - 1 : prev - 1));
-  };
-
-  const goToSlide = (index: number): void => {
-    setCurrentSlide(index);
-  };
-
-  // Initialize animation state
   useEffect(() => {
-    // Set the initial animation state without triggering animations
     controls.set("hidden");
-    
-    // Mark component as ready for the observer
     setObserverInitialized(true);
   }, [controls]);
 
-  // Setup Intersection Observer for scroll-based animations
   useEffect(() => {
-    // Only set up the observer after the initial animation state is set
     if (!observerInitialized) return;
 
-    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
+    const refCopy = containerRef.current;
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
-      
       if (entry.isIntersecting) {
         setIsVisible(true);
-        // Use requestAnimationFrame to ensure component is mounted
-        requestAnimationFrame(() => {
-          controls.start("visible");
-        });
+        requestAnimationFrame(() => controls.start("visible"));
       } else {
         setIsVisible(false);
-        // We don't need to set it back to hidden when not intersecting
       }
     };
 
     const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    if (refCopy) observer.observe(refCopy);
 
     return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
+      if (refCopy) observer.unobserve(refCopy);
     };
   }, [controls, observerInitialized]);
 
-  // Reset animation when slide changes
   useEffect(() => {
     if (isVisible && observerInitialized) {
-      // Use requestAnimationFrame to ensure component is mounted
-      requestAnimationFrame(() => {
-        controls.start("visible");
-      });
+      requestAnimationFrame(() => controls.start("visible"));
     }
   }, [currentSlide, controls, isVisible, observerInitialized]);
 
-  // Class C Programs Slides content
-  const classCSlides: SlideProps[] = [
-    // Slide 1: Main Information and Logos
+  const classCSlides = [
     {
       title: "Class C Programs",
       content: (
@@ -188,64 +110,34 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               Class C Programs
             </motion.h1>
             <motion.p className="text-lg text-gray-700 max-w-4xl mx-auto leading-relaxed" variants={itemVariants}>
-              Kickstart your career with MyDrive Academy's specialized Class C programs! In Illinois, a Class C license 
+              Kickstart your career with MyDrive Academy&#39;s specialized Class C programs! In Illinois, a Class C license 
               is required for drivers who operate vehicles that transport 15 passengers (including the driver) with a gross 
               vehicle weight rating (GVWR) of less than 26,001 pounds. This license is essential for a wide range of passenger 
               or transport roles, including taxicabs, shuttle buses, and noncommercial vehicles.
             </motion.p>
-            
+
             <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
               This expands your opportunities to drive commercial vehicles for large enterprises like:
             </motion.p>
-            
-            <motion.div 
-              className="flex justify-center items-center space-x-8 mt-8 mb-8"
-              variants={containerVariants}
-            >
-              <motion.img 
-                src="/api/placeholder/120/60" 
-                alt="Amazon Logistics" 
-                variants={logoVariants}
-              />
-              <motion.img 
-                src="/api/placeholder/80/60" 
-                alt="UPS" 
-                variants={logoVariants}
-              />
-              <motion.img 
-                src="/api/placeholder/80/60" 
-                alt="Postmates" 
-                variants={logoVariants}
-              />
-              <motion.img 
-                src="/api/placeholder/120/60" 
-                alt="DoorDash" 
-                variants={logoVariants}
-              />
-              <motion.img 
-                src="/api/placeholder/80/60" 
-                alt="Uber" 
-                variants={logoVariants}
-              />
-              <motion.img 
-                src="/api/placeholder/120/60" 
-                alt="FedEx" 
-                variants={logoVariants}
-              />
+
+            <motion.div className="flex justify-center items-center space-x-8 mt-8 mb-8" variants={containerVariants}>
+              {["Amazon", "UPS", "Postmates", "DoorDash", "Uber", "FedEx"].map((alt, i) => (
+                <motion.img key={i} src={`/api/placeholder/${i % 2 === 0 ? 120 : 80}/60`} alt={alt} variants={logoVariants} />
+              ))}
             </motion.div>
-            
+
             <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-8" variants={itemVariants}>
               Additionally, If you plan to transport passengers for hire, you will need to obtain a Passenger Endorsement. 
               This endorsement requires an additional exam and ensures that you meet all necessary safety and regulatory 
               standards for passenger transport.
             </motion.p>
-            
+
             <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
               Our expert instructors are dedicated to providing the training and support you need to pass your exams and 
               hit the road as a confident, professional driver. With hands-on training and comprehensive instruction, we 
-              ensure you're fully prepared to meet Illinois state requirements and succeed in your new career.
+              ensure you&#39;re fully prepared to meet Illinois state requirements and succeed in your new career.
             </motion.p>
-            
+
             <motion.p className="text-gray-700 max-w-4xl mx-auto leading-relaxed mt-6" variants={itemVariants}>
               Discover the Gateway to Exciting Careers! License C type training can open the door to great employment 
               opportunities! Start your journey to obtaining a Class C License today at MyDrive Academy!
@@ -254,7 +146,6 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
         </motion.div>
       )
     },
-    // Slide 2: Class C Packages
     {
       title: "Class C Program Packages",
       content: (
@@ -271,11 +162,8 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
           >
             Class C Program Packages
           </motion.h1>
-          
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
-            variants={cardsContainerVariants}
-          >
+
+          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" variants={cardsContainerVariants}>
             <motion.div variants={cardVariants}>
               <ClassCProgramCard 
                 title="Written Exam Prep for License C"
@@ -288,7 +176,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
                 icon={<BookOpen />}
               />
             </motion.div>
-            
+
             <motion.div variants={cardVariants}>
               <ClassCProgramCard 
                 title="2 Hr Behind the Wheel + Road Test"
@@ -303,7 +191,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
                 icon={<Car />}
               />
             </motion.div>
-            
+
             <motion.div variants={cardVariants}>
               <ClassCProgramCard 
                 title="1 Hr Behind the Wheel + Written Exam Prep + Road Test"
@@ -319,17 +207,14 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
               />
             </motion.div>
           </motion.div>
-          
+
           <motion.div className="text-center" variants={itemVariants}>
-            
-            <motion.div className="mt-6" variants={itemVariants}>
-              <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto" variants={itemVariants}>
-                ***Use our vehicles for your road test at the Secretary of State facility
-              </motion.p>
-              <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto mt-2" variants={itemVariants}>
-                ***Student enrolling in any of these packages MUST possess a valid, non-CDL Illinois driver's license.
-              </motion.p>
-            </motion.div>
+            <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto" variants={itemVariants}>
+              ***Use our vehicles for your road test at the Secretary of State facility
+            </motion.p>
+            <motion.p className="text-sm text-gray-700 max-w-4xl mx-auto mt-2" variants={itemVariants}>
+              ***Student enrolling in any of these packages MUST possess a valid, non-CDL Illinois driver&#39;s license.
+            </motion.p>
           </motion.div>
         </motion.div>
       )
@@ -341,19 +226,17 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
       className="py-12 px-4 bg-white relative overflow-hidden h-[680px]"
       ref={containerRef}
     >
-      {/* Background decorative elements */}
       <motion.div 
         className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-50 rounded-full opacity-30"
         animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
         transition={{ duration: 0.8 }}
-      ></motion.div>
+      />
       <motion.div 
         className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-50 rounded-full opacity-30"
         animate={isVisible ? { scale: [0.8, 1], opacity: [0, 0.3] } : { scale: 0.8, opacity: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-      ></motion.div>
-      
-      {/* Slide navigation */}
+      />
+
       <SlideNavigation
         currentSlide={currentSlide}
         totalSlides={classCSlides.length}
@@ -361,8 +244,7 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
         onNext={nextSlide}
         onSelect={goToSlide}
       />
-      
-      {/* Slide content */}
+
       <div className="transition-all duration-500 ease-in-out">
         {classCSlides[currentSlide].content}
       </div>
@@ -371,6 +253,4 @@ const ClassCProgramSlides: React.FC<ClassCProgramSlidesProps> = () => {
 };
 
 export default ClassCProgramSlides;
-
-
 

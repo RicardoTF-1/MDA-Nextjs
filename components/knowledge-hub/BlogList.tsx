@@ -6,7 +6,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
-// Define TypeScript interfaces
 interface BlogPost {
   id: number;
   title: string;
@@ -27,7 +26,6 @@ interface BlogListProps {
   searchQuery?: string;
 }
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -56,13 +54,12 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
   const router = useRouter();
   const pathname = usePathname();
   const itemsPerPage = 10;
-  
-  // Setup intersection observer for animation
+
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: false
   });
-  
+
   if (!posts || posts.length === 0) {
     return (
       <motion.div 
@@ -95,7 +92,6 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
     );
   }
 
-  // Calculate pagination
   const totalItems = posts.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -104,23 +100,12 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
 
   const handlePageChange = (pageNumber: number) => {
     const params = new URLSearchParams();
-    
-    if (categorySlug) {
-      params.set('category', categorySlug);
-    }
-    
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    }
-    
+    if (categorySlug) params.set('category', categorySlug);
+    if (searchQuery) params.set('search', searchQuery);
     params.set('page', pageNumber.toString());
-    
+
     router.push(`${pathname}?${params.toString()}`);
-    
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -132,13 +117,12 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
         initial="hidden"
         animate={inView ? "visible" : "hidden"}
       >
-        {currentItems.map((post, index) => (
+        {currentItems.map((post) => (
           <motion.div 
             key={post.id} 
             variants={itemVariants}
             className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col md:flex-row"
           >
-            {/* Featured Image */}
             <div className="md:w-1/3">
               <div className="relative h-48 md:h-full">
                 <Image
@@ -149,8 +133,7 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
                 />
               </div>
             </div>
-            
-            {/* Content */}
+
             <div className="md:w-2/3 p-6">
               <div className="flex flex-wrap items-center text-sm text-gray-500 mb-2">
                 <span className="bg-blue-100 text-blue-800 rounded-full px-3 py-1 mr-2">
@@ -163,14 +146,13 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
                     year: 'numeric'
                   })}
                 </span>
-                
                 {post.reading_time && (
                   <span className="ml-4">
                     {post.reading_time} min read
                   </span>
                 )}
               </div>
-              
+
               <h2 className="text-xl font-bold mb-3">
                 <Link
                   href={`/knowledge-hub/blog/${post.slug}`}
@@ -179,15 +161,13 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
                   {post.title}
                 </Link>
               </h2>
-              
+
               <p className="text-gray-600 mb-4 line-clamp-3">
                 {post.excerpt || ''}
               </p>
-              
+
               <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-500">
-                  By {post.author_name}
-                </div>
+                <div className="text-sm text-gray-500">By {post.author_name}</div>
                 <motion.div
                   whileHover={{ x: 3 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -204,8 +184,7 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
           </motion.div>
         ))}
       </motion.div>
-      
-      {/* Pagination */}
+
       {totalPages > 1 && (
         <motion.div 
           className="flex justify-center mt-8"
@@ -227,23 +206,23 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
             >
               Previous
             </motion.button>
-            
-            {Array.from({ length: totalPages }).map((_, index) => (
+
+            {[...Array(totalPages)].map((_, i) => (
               <motion.button
-                key={index}
-                onClick={() => handlePageChange(index + 1)}
+                key={i}
+                onClick={() => handlePageChange(i + 1)}
                 className={`px-4 py-2 ${
-                  currentPage === index + 1
+                  currentPage === i + 1
                     ? 'bg-blue-700 text-white'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {index + 1}
+                {i + 1}
               </motion.button>
             ))}
-            
+
             <motion.button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -263,3 +242,4 @@ export default function BlogList({ posts, currentPage = 1, categorySlug, searchQ
     </div>
   );
 }
+

@@ -1,12 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
-// Define TypeScript interfaces
 interface Category {
   id: number;
   name: string;
@@ -18,7 +15,6 @@ interface CategoryTabsProps {
   categories: Category[];
 }
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0, y: -10 },
   visible: {
@@ -37,7 +33,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 200,
       damping: 20
     }
@@ -49,36 +45,33 @@ export default function CategoryTabs({ categories }: CategoryTabsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentCategory = searchParams?.get('category') || 'all';
-  
-  // Setup intersection observer for animation
+
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: false
   });
-  
+
   const handleCategoryChange = (categorySlug: string) => {
     const params = new URLSearchParams(searchParams?.toString());
-    
+
     if (categorySlug === 'all') {
       params.delete('category');
     } else {
       params.set('category', categorySlug);
     }
-    
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  if (!categories || categories.length === 0) {
-    return null;
-  }
+  if (!categories || categories.length === 0) return null;
 
   return (
-    <motion.div 
+    <motion.div
       ref={ref}
       className="mb-8 overflow-x-auto"
       variants={containerVariants}
       initial="hidden"
-      animate={inView ? "visible" : "hidden"}
+      animate={inView ? 'visible' : 'hidden'}
     >
       <div className="flex space-x-2 pb-2">
         <motion.button
@@ -94,7 +87,7 @@ export default function CategoryTabs({ categories }: CategoryTabsProps) {
         >
           All Posts
         </motion.button>
-        
+
         {categories.map((category) => (
           <motion.button
             key={category.id}
@@ -120,3 +113,4 @@ export default function CategoryTabs({ categories }: CategoryTabsProps) {
     </motion.div>
   );
 }
+

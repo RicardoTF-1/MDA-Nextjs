@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 
-// Blog Card Component con Efectos Mejorados
 const BlogCard = ({ post, index, isVisible }) => {
   return (
     <div 
@@ -18,9 +18,10 @@ const BlogCard = ({ post, index, isVisible }) => {
       >
         <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
           <div className="relative h-48 overflow-hidden">
-            <img 
+            <Image 
               src={post.featured_image_url || '/images/placeholder-article.jpg'} 
               alt={post.title}
+              fill
               className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
             />
             {post.category_name && (
@@ -33,11 +34,8 @@ const BlogCard = ({ post, index, isVisible }) => {
           <div className="p-5 flex-grow flex flex-col">
             <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
             <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt || ''}</p>
-            
             <div className="mt-auto flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-xs text-gray-700">{post.author_name || 'My Drive Academy'}</span>
-              </div>
+              <span className="text-xs text-gray-700">{post.author_name || 'My Drive Academy'}</span>
               <span className="text-xs text-gray-500">
                 {post.published_date ? new Date(post.published_date).toLocaleDateString() : ''}
               </span>
@@ -49,92 +47,64 @@ const BlogCard = ({ post, index, isVisible }) => {
   );
 };
 
-// Main Blog Slider Component
 const InfiniteBlogSlider = ({ posts = [] }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const sliderRef = useRef(null);
   const containerRef = useRef(null);
-  
-  // If no posts, return placeholder message
-  if (!posts || posts.length === 0) {
-    return (
-      <div className="w-full bg-gray-50 py-16 px-4 text-center">
-        <p className="text-gray-500">No articles available at the moment.</p>
-      </div>
-    );
-  }
-  
-  // Duplicate posts for infinite effect
+
   const extendedPosts = [...posts, ...posts, ...posts];
-  
-  // Observe when the slider comes into view
+
+  // Always call hooks at top level — no conditional returns before this
   useEffect(() => {
+    const refCopy = containerRef.current;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
+      ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.2 }
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
+    if (refCopy) observer.observe(refCopy);
     return () => {
-      if (containerRef.current) {
-        observer.unobserve(containerRef.current);
-      }
+      if (refCopy) observer.unobserve(refCopy);
     };
   }, []);
 
-  // Automatic scrolling effect
   useEffect(() => {
-    if (!isVisible || !sliderRef.current) return;
-    
     const slider = sliderRef.current;
-    let animationId;
+    if (!isVisible || !slider) return;
+
+    let animationId: number;
     let lastTimestamp = 0;
-    const speed = 0.05; // pixels per millisecond
-    
-    const scrollSlider = (timestamp) => {
+    const speed = 0.05;
+
+    const scrollSlider = (timestamp: number) => {
       if (!lastTimestamp) lastTimestamp = timestamp;
       const elapsed = timestamp - lastTimestamp;
       lastTimestamp = timestamp;
-      
-      // Update scroll position
-      setScrollPosition(prev => {
-        const newPosition = prev + speed * elapsed;
-        
-        // Reset when we've scrolled through one set of posts
-        const firstSetWidth = posts.length * (window.innerWidth > 768 ? 320 : 288); // width + margin
-        return newPosition >= firstSetWidth ? 0 : newPosition;
+
+      setScrollPosition((prev) => {
+        const width = posts.length * (window.innerWidth > 768 ? 320 : 288);
+        return prev + speed * elapsed >= width ? 0 : prev + speed * elapsed;
       });
-      
+
       animationId = requestAnimationFrame(scrollSlider);
     };
-    
+
     animationId = requestAnimationFrame(scrollSlider);
-    
-    // Handle mouseover to pause scrolling
-    const handleMouseEnter = () => {
-      cancelAnimationFrame(animationId);
-    };
-    
-    const handleMouseLeave = () => {
-      lastTimestamp = 0; // Reset timestamp for smooth restart
+
+    const pauseScroll = () => cancelAnimationFrame(animationId);
+    const resumeScroll = () => {
+      lastTimestamp = 0;
       animationId = requestAnimationFrame(scrollSlider);
     };
-    
-    slider.addEventListener('mouseenter', handleMouseEnter);
-    slider.addEventListener('mouseleave', handleMouseLeave);
-    
+
+    slider.addEventListener('mouseenter', pauseScroll);
+    slider.addEventListener('mouseleave', resumeScroll);
+
     return () => {
       cancelAnimationFrame(animationId);
-      if (slider) {
-        slider.removeEventListener('mouseenter', handleMouseEnter);
-        slider.removeEventListener('mouseleave', handleMouseLeave);
-      }
+      slider.removeEventListener('mouseenter', pauseScroll);
+      slider.removeEventListener('mouseleave', resumeScroll);
     };
   }, [isVisible, posts.length]);
 
@@ -149,13 +119,8 @@ const InfiniteBlogSlider = ({ posts = [] }) => {
             Expert articles, tips and resources for new and experienced drivers
           </p>
         </div>
-        
+
         <div className="relative overflow-hidden">
-          {/* Gradient fade on edges */}
-          {/* <div className="absolute left-0 top-0 h-full w-16 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
-          <div className="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-gray-50 to-transparent z-10"></div> */}
-          
-          {/* Slider container */}
           <div 
             ref={sliderRef}
             className="flex overflow-visible py-4"
@@ -171,7 +136,7 @@ const InfiniteBlogSlider = ({ posts = [] }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="text-center mt-10">
           <Link 
             href="/knowledge-hub" 
@@ -190,3 +155,4 @@ const InfiniteBlogSlider = ({ posts = [] }) => {
 };
 
 export default InfiniteBlogSlider;
+
