@@ -1,8 +1,25 @@
-// components/courses/CourseCard.js
+// components/courses/CourseCard.tsx
 import Link from 'next/link'
 import Image from 'next/image'
 
-export default function CourseCard({ course }) {
+// Define the interface for the course object
+interface Course {
+  id: string | number;
+  title: string;
+  description: string;
+  image?: string;
+  category_name?: string;
+  price: number;
+  discounted_price?: number;
+  slug: string;
+}
+
+// Define the interface for CourseCard props
+interface CourseCardProps {
+  course: Course;
+}
+
+export default function CourseCard({ course }: CourseCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
       <div className="h-48 relative">

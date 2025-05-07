@@ -1,13 +1,25 @@
 "use client"
-
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function RelatedPosts({ posts }) {
+// Define interface for post data
+interface Post {
+  id: string | number;
+  title: string;
+  slug: string;
+  featured_image_url?: string;
+  excerpt?: string;
+}
+
+interface RelatedPostsProps {
+  posts: Post[];
+}
+
+export default function RelatedPosts({ posts }: RelatedPostsProps) {
   if (!posts || posts.length === 0) {
     return null;
   }
-
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {posts.map((post) => (
@@ -46,3 +58,7 @@ export default function RelatedPosts({ posts }) {
     </div>
   );
 }
+
+
+
+

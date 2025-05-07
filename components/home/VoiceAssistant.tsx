@@ -1,11 +1,13 @@
 'use client';
-
 import Script from 'next/script';
+import React from 'react';
 
-export default function CallAssistant() {
+export default function VoiceAssistant() {
   return (
     <div className="call-assistant-container">
-      <embeddable-voice id="b3038f80-c256-405b-b352-5a533840dfc1" />
+      {/* Use JSX type assertion to avoid TypeScript errors */}
+      {React.createElement('embeddable-voice', { id: "b3038f80-c256-405b-b352-5a533840dfc1" })}
+      
       <Script
         src="https://cdn.247aireceptionist.com/call-embeddable-widget-v2.js"
         strategy="afterInteractive"
@@ -15,4 +17,3 @@ export default function CallAssistant() {
     </div>
   );
 }
-

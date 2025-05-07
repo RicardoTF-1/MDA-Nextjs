@@ -12,6 +12,11 @@ import {
   buttonVariants 
 } from '../../../hooks/useAnimatedCardProps';
 
+// Define a proper interface for icon elements
+interface IconElementProps {
+  className?: string;
+}
+
 const DefensiveProgramCard: React.FC<DefensiveProgramCardProps> = ({ 
   title, 
   subtitle, 
@@ -31,7 +36,7 @@ const DefensiveProgramCard: React.FC<DefensiveProgramCardProps> = ({
     if (!icon) return null;
     
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon, { 
+      return React.cloneElement(icon as React.ReactElement<IconElementProps>, { 
         className: "text-emerald-400"
       });
     }
@@ -105,3 +110,5 @@ const DefensiveProgramCard: React.FC<DefensiveProgramCardProps> = ({
 };
 
 export default DefensiveProgramCard;
+
+

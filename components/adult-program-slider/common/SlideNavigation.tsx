@@ -1,82 +1,40 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
+import { motion, Variants } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, useAnimation, Variants } from 'framer-motion';
-import { SlideNavigationProps } from '../types';
 
-// Animation variants
+interface SlideNavigationProps {
+  currentSlide: number;
+  totalSlides: number;
+  onPrevious: () => void;
+  onNext: () => void;
+  onSelect: (index: number) => void;
+}
+
+// Updated variant definitions with proper typing
 const buttonVariants: Variants = {
   hidden: {
     opacity: 0,
-    x: (index: number) => (index === 0 ? -20 : 20),
+    x: 0, // Default value
   },
   visible: {
     opacity: 1,
     x: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.3,
       ease: 'easeOut',
     },
   },
   hover: {
-    scale: 1.1,
-    backgroundColor: '#10b981',
+    scale: 1.05,
     transition: {
       duration: 0.2,
     },
   },
-  tap: {
-    scale: 0.9,
-  },
 };
 
-const indicatorContainerVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut',
-      delayChildren: 0.2,
-      staggerChildren: 0.05,
-    },
-  },
-};
-
-const indicatorVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.8,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.3,
-      ease: 'easeOut',
-    },
-  },
-  active: {
-    width: '2rem',
-    backgroundColor: '#10b981',
-    transition: {
-      duration: 0.3,
-    },
-  },
-  inactive: {
-    width: '0.75rem',
-    backgroundColor: '#d1d5db',
-    transition: {
-      duration: 0.3,
-    },
-  },
-  hover: {
-    scale: 1.2,
-    backgroundColor: '#9ca3af',
-  },
+// Define a separate function for computing x offset
+const getXOffset = (index: number): number => {
+  return index === 0 ? -20 : 20;
 };
 
 const SlideNavigation: React.FC<SlideNavigationProps> = ({
@@ -86,113 +44,53 @@ const SlideNavigation: React.FC<SlideNavigationProps> = ({
   onNext,
   onSelect,
 }) => {
-  const controls = useAnimation();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [observerInitialized, setObserverInitialized] = useState(false);
-
-  // Initialize animation state
-  useEffect(() => {
-    controls.set('hidden');
-    setObserverInitialized(true);
-  }, [controls]);
-
-  // Setup Intersection Observer
-  useEffect(() => {
-    if (!observerInitialized) return;
-
-    const currentRef = containerRef.current;
-
-    const handleIntersection = (entries: IntersectionObserverEntry[]): void => {
-      const [entry] = entries;
-      if (entry.isIntersecting) {
-        requestAnimationFrame(() => {
-          controls.start('visible');
-        });
-      }
-    };
-
-    const observer = new IntersectionObserver(handleIntersection, { threshold: 0.1 });
-
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, [controls, observerInitialized]);
-
   return (
-    <div ref={containerRef}>
-      {/* Previous button */}
-      <motion.div
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10"
-        custom={0}
-        initial="hidden"
-        animate={controls}
-        variants={buttonVariants}
-      >
-        <motion.button
-          onClick={onPrevious}
-          className="bg-emerald-500 text-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg hover:bg-emerald-600 transition-all duration-300 focus:outline-none hover:scale-110"
-          aria-label="Previous slide"
-          whileHover="hover"
-          whileTap="tap"
-          variants={buttonVariants}
-        >
-          <ChevronLeft size={28} />
-        </motion.button>
-      </motion.div>
-
-      {/* Next button */}
-      <motion.div
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10"
-        custom={1}
-        initial="hidden"
-        animate={controls}
-        variants={buttonVariants}
-      >
-        <motion.button
-          onClick={onNext}
-          className="bg-emerald-500 text-white w-12 h-12 flex items-center justify-center rounded-full shadow-lg hover:bg-emerald-600 transition-all duration-300 focus:outline-none hover:scale-110"
-          aria-label="Next slide"
-          whileHover="hover"
-          whileTap="tap"
-          variants={buttonVariants}
-        >
-          <ChevronRight size={28} />
-        </motion.button>
-      </motion.div>
-
-      {/* Slide indicators */}
-      <motion.div
-        className="flex justify-center mt-8 space-x-3"
-        initial="hidden"
-        animate={controls}
-        variants={indicatorContainerVariants}
-      >
+    <div className="flex justify-between items-center mb-8">
+      <div className="flex space-x-2">
         {Array.from({ length: totalSlides }).map((_, index) => (
           <motion.button
             key={index}
+            className={`w-3 h-3 rounded-full ${
+              currentSlide === index ? 'bg-emerald-500' : 'bg-gray-300'
+            }`}
             onClick={() => onSelect(index)}
-            className="h-3 rounded-full transition-all duration-300 focus:outline-none"
-            aria-label={`Go to slide ${index + 1}`}
-            aria-current={index === currentSlide ? 'true' : 'false'}
-            variants={indicatorVariants}
-            animate={index === currentSlide ? 'active' : 'inactive'}
-            whileHover="hover"
-            initial={{
-              width: index === currentSlide ? '2rem' : '0.75rem',
-              backgroundColor: index === currentSlide ? '#10b981' : '#d1d5db',
+            variants={buttonVariants}
+            // Apply the x offset using custom prop instead of in the variants
+            initial={{ 
+              opacity: 0, 
+              x: getXOffset(index)
             }}
+            animate={{ 
+              opacity: 1, 
+              x: 0 
+            }}
+            whileHover="hover"
+            transition={{ duration: 0.3 }}
           />
         ))}
-      </motion.div>
+      </div>
+      <div className="flex space-x-4">
+        <motion.button
+          onClick={onPrevious}
+          className="p-2 bg-gray-100 hover:bg-emerald-100 rounded-full"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft size={20} className="text-gray-700" />
+        </motion.button>
+        <motion.button
+          onClick={onNext}
+          className="p-2 bg-gray-100 hover:bg-emerald-100 rounded-full"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronRight size={20} className="text-gray-700" />
+        </motion.button>
+      </div>
     </div>
   );
 };
 
 export default SlideNavigation;
+
 

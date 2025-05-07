@@ -3,7 +3,31 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-const SubcategorySection = ({ subcategory, categorySlug }) => {
+// Define interfaces for component props and data
+interface Course {
+  id: string | number;
+  title: string;
+  subtitle?: string;
+  slug: string;
+  header_color?: 'warning' | 'primary' | 'success' | string;
+  has_free_pickup?: boolean;
+  is_featured?: boolean;
+  bullet_point_list?: string[];
+}
+
+interface Subcategory {
+  name: string;
+  description: string;
+  image_url?: string;
+  courses?: Course[];
+}
+
+interface SubcategorySectionProps {
+  subcategory: Subcategory | null;
+  categorySlug: string;
+}
+
+const SubcategorySection = ({ subcategory, categorySlug }: SubcategorySectionProps) => {
   if (!subcategory) {
     return <div className="text-center py-8">No subcategory data available</div>;
   }
@@ -113,4 +137,3 @@ const SubcategorySection = ({ subcategory, categorySlug }) => {
 };
 
 export default SubcategorySection;
-

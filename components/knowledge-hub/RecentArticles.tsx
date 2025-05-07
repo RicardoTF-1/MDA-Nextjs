@@ -4,7 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function RecentArticles({ articles }) {
+// Define interface for article data
+interface Article {
+  id: string | number;
+  title: string;
+  slug: string;
+  featured_image_url?: string;
+  excerpt?: string;
+  content: string;
+  published_date: string;
+}
+
+interface RecentArticlesProps {
+  articles: Article[];
+}
+
+export default function RecentArticles({ articles }: RecentArticlesProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 6;
   
@@ -22,12 +37,15 @@ export default function RecentArticles({ articles }) {
   const currentArticles = articles.slice(indexOfFirstArticle, indexOfLastArticle);
   const totalPages = Math.ceil(articles.length / articlesPerPage);
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({
-      top: document.getElementById('recent-articles').offsetTop - 100,
-      behavior: 'smooth'
-    });
+    const recentArticlesElement = document.getElementById('recent-articles');
+    if (recentArticlesElement) {
+      window.scrollTo({
+        top: recentArticlesElement.offsetTop - 100,
+        behavior: 'smooth'
+      });
+    }
   };
 
   return (

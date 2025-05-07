@@ -1,6 +1,22 @@
 'use client';
 
-const SubcategoryTabs = ({ subcategories, activeSubcategoryId, onSubcategoryChange }) => {
+// Define interfaces for the subcategory data and component props
+interface Subcategory {
+  id: string | number;
+  name: string;
+}
+
+interface SubcategoryTabsProps {
+  subcategories: Subcategory[];
+  activeSubcategoryId: string | number | null;
+  onSubcategoryChange: (subcategory: Subcategory) => void;
+}
+
+const SubcategoryTabs = ({ 
+  subcategories, 
+  activeSubcategoryId, 
+  onSubcategoryChange 
+}: SubcategoryTabsProps) => {
   if (!subcategories || subcategories.length === 0) {
     return null;
   }

@@ -1,7 +1,7 @@
 // app/courses/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react'; // ✅ removed useRef
+import React, { useEffect, useState } from 'react'; // Added React import
 import Link from 'next/link';
 import { fetchCourseCategories } from '@/lib/api';
 import { motion } from 'framer-motion';
@@ -131,7 +131,7 @@ const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => (
 );
 
 // Main Page
-export default function CoursesPage(): JSX.Element {
+export default function CoursesPage(): React.ReactElement {
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -224,4 +224,3 @@ export default function CoursesPage(): JSX.Element {
     </div>
   );
 }
-

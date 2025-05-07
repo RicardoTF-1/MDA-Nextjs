@@ -1,14 +1,21 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchLocations } from '/lib/api';
+import { fetchLocations } from '@/lib/api'; // Fixed import path
+
+// Define interface for location data
+interface Location {
+  id: number | string;
+  name: string;
+  city?: string;
+  image_url?: string;
+}
 
 const LocationFinder = () => {
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadLocations = async () => {
@@ -23,7 +30,6 @@ const LocationFinder = () => {
         setIsLoading(false);
       }
     };
-
     loadLocations();
   }, []);
 

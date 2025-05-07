@@ -12,6 +12,11 @@ import {
   buttonVariants 
 } from '../../../hooks/useAnimatedCardProps';
 
+// Define a proper interface for icon elements
+interface IconElementProps {
+  className?: string;
+}
+
 const ChauffeurProgramCard: React.FC<ChauffeurProgramCardProps> = ({ 
   title, 
   subtitle, 
@@ -31,8 +36,8 @@ const ChauffeurProgramCard: React.FC<ChauffeurProgramCardProps> = ({
     if (!icon) return null;
     
     if (React.isValidElement(icon)) {
-      // It's already a ReactElement
-      return React.cloneElement(icon, { 
+      // It's already a ReactElement, but we need to add proper typing
+      return React.cloneElement(icon as React.ReactElement<IconElementProps>, { 
         className: "text-emerald-400"
       });
     }
@@ -106,3 +111,6 @@ const ChauffeurProgramCard: React.FC<ChauffeurProgramCardProps> = ({
 };
 
 export default ChauffeurProgramCard;
+
+
+

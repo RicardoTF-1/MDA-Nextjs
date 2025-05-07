@@ -4,15 +4,35 @@ import { useState, useEffect, useRef } from 'react'
 import { fetchCourseFinderQuestions, getRecommendedCourse } from '../../lib/api'
 import { motion } from 'framer-motion'
 
+// Define interfaces for the component's state
+interface Question {
+  id: number;
+  question_text: string;
+  question_type: string;
+  options: Option[];
+}
+
+interface Option {
+  id: number;
+  option_text: string;
+}
+
+interface Recommendation {
+  course_details?: {
+    title: string;
+  };
+  description: string;
+}
+
 export default function CourseFinder() {
-  const [questions, setQuestions] = useState([])
+  const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [recommendation, setRecommendation] = useState(null)
+  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef(null)
+  const sectionRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const currentRef = sectionRef.current
@@ -154,4 +174,3 @@ export default function CourseFinder() {
     </div>
   )
 }
-

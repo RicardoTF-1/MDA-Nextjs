@@ -12,6 +12,11 @@ import {
   buttonVariants 
 } from '../../../hooks/useAnimatedCardProps';
 
+// Define a proper interface for icon elements
+interface IconElementProps {
+  className?: string;
+}
+
 const AdvancedSkillsCard: React.FC<AdvancedSkillsCardProps> = ({ 
   title, 
   subtitle, 
@@ -31,7 +36,8 @@ const AdvancedSkillsCard: React.FC<AdvancedSkillsCardProps> = ({
     if (!icon) return null;
     
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon, { 
+      // Using proper type casting without ts-expect-error
+      return React.cloneElement(icon as React.ReactElement<IconElementProps>, { 
         className: "text-emerald-400"
       });
     }
@@ -106,3 +112,5 @@ const AdvancedSkillsCard: React.FC<AdvancedSkillsCardProps> = ({
 };
 
 export default AdvancedSkillsCard;
+
+

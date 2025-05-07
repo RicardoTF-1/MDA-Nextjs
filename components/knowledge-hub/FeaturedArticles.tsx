@@ -1,9 +1,23 @@
 "use client"
-
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function FeaturedArticles({ articles }) {
+// Define interface for article data
+interface Article {
+  id: string | number;
+  title: string;
+  slug: string;
+  featured_image_url?: string;
+  excerpt?: string;
+  content: string;
+  // Add any other fields that might be used
+}
+
+interface FeaturedArticlesProps {
+  articles: Article[];
+}
+
+export default function FeaturedArticles({ articles }: FeaturedArticlesProps) {
   if (!articles || articles.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8">
@@ -11,7 +25,7 @@ export default function FeaturedArticles({ articles }) {
       </div>
     );
   }
-
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {articles.map((article) => (

@@ -1,12 +1,22 @@
-// components/home/LocationMap.js
+// components/home/LocationMap.tsx
 'use client'
-
 import { useState, useEffect } from 'react'
-import { fetchLocations } from '/lib/api'
+import { fetchLocations } from '@/lib/api'  // Fixed import path
 import Link from 'next/link'
 
+// Define interface for location data
+interface Location {
+  id: number | string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  phone: string;
+}
+
 export default function LocationMap() {
-  const [locations, setLocations] = useState([])
+  const [locations, setLocations] = useState<Location[]>([])
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
@@ -80,3 +90,6 @@ export default function LocationMap() {
     </div>
   )
 }
+
+
+

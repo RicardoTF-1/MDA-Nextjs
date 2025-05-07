@@ -1,10 +1,14 @@
-// components/common/Navigation.js
+// components/common/Navigation.tsx
 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export default function Navigation({ mobile }) {
+interface NavigationProps {
+  mobile: boolean;
+}
+
+export default function Navigation({ mobile }: NavigationProps) {
   const pathname = usePathname()
   
   const navItems = [
@@ -19,7 +23,7 @@ export default function Navigation({ mobile }) {
     ? 'flex flex-col space-y-2'
     : 'flex space-x-6'
     
-  const linkClass = (href) => {
+  const linkClass = (href: string): string => {
     const baseClass = 'py-2 transition hover:text-blue-600'
     const activeClass = pathname === href ? 'font-semibold text-blue-600' : ''
     return `${baseClass} ${activeClass}`
@@ -39,3 +43,6 @@ export default function Navigation({ mobile }) {
     </nav>
   )
 }
+
+
+

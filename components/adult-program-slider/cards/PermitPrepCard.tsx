@@ -13,6 +13,11 @@ import {
   dropdownVariants
 } from '../../../hooks/useAnimatedCardProps';
 
+// Define a proper interface for icon elements
+interface IconElementProps {
+  className?: string;
+}
+
 const PermitPrepCard: React.FC<PermitPrepCardProps> = ({ 
   title, 
   subtitle, 
@@ -35,7 +40,7 @@ const PermitPrepCard: React.FC<PermitPrepCardProps> = ({
     if (!icon) return null;
     
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon, { 
+      return React.cloneElement(icon as React.ReactElement<IconElementProps>, { 
         className: "text-emerald-400"
       });
     }
@@ -140,3 +145,7 @@ const PermitPrepCard: React.FC<PermitPrepCardProps> = ({
 };
 
 export default PermitPrepCard;
+
+
+
+

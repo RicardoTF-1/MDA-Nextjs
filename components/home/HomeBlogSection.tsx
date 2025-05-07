@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-interface BlogPost {
+// Define BlogPost interface (this should be consistent with what InfiniteBlogSlider expects)
+export interface BlogPost {
   id: number;
   title: string;
   slug: string;
@@ -192,4 +193,3 @@ const placeholderPosts: BlogPost[] = [
 ];
 
 export default HomeBlogSection;
-

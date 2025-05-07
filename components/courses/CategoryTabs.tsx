@@ -1,5 +1,4 @@
 'use client';
-
 import Link from 'next/link';
 
 const COURSE_CATEGORIES = [
@@ -11,7 +10,12 @@ const COURSE_CATEGORIES = [
   { id: 'illinois-permit-prep', name: 'Illinois Permit Prep', path: '/courses/illinois-permit-prep' },
 ];
 
-const CategoryTabs = ({ activeCategory }) => {
+// Define the interface for CategoryTabs props
+interface CategoryTabsProps {
+  activeCategory: string;
+}
+
+const CategoryTabs = ({ activeCategory }: CategoryTabsProps) => {
   return (
     <div className="overflow-x-auto flex border-b border-gray-200 mb-6">
       <div className="flex min-w-full">
@@ -34,3 +38,5 @@ const CategoryTabs = ({ activeCategory }) => {
 };
 
 export default CategoryTabs;
+
+

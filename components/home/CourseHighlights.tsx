@@ -1,21 +1,36 @@
-// components/home/CourseHighlights.js
+// components/home/CourseHighlights.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchCourses } from '/lib/api'
-import CourseCard from '/components/courses/CourseCard'
+import { fetchCourse } from '@/lib/api'  // Fixed import path and function name
+import CourseCard from '@/components/courses/CourseCard'  // Fixed import path
 import Link from 'next/link'
 
+// Define interfaces for course data
+interface Course {
+  id: string | number;
+  title: string;
+  description: string;
+  image?: string;
+  category_name?: string;
+  price: number;
+  discounted_price?: number;
+  slug: string;
+}
+
 export default function CourseHighlights() {
-  const [featuredCourses, setFeaturedCourses] = useState([])
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
     const loadFeaturedCourses = async () => {
       try {
         setLoading(true)
-        const data = await fetchCourses({ featured: true })
-        setFeaturedCourses(data)
+        // Using fetchCourse which is available in your API
+        const data = await fetchCourse({ featured: true })
+        // Handle the possibility that data might be a single course or an array
+        const courseArray = Array.isArray(data) ? data : [data].filter(Boolean)
+        setFeaturedCourses(courseArray)
       } catch (error) {
         console.error('Error loading featured courses:', error)
       } finally {
@@ -60,3 +75,6 @@ export default function CourseHighlights() {
     </div>
   )
 }
+
+
+

@@ -1,8 +1,17 @@
-// app/courses/layout.js
-export default function CoursesLayout({ children }) {
-    return (
-      <main>
-        {children}
-      </main>
-    );
-  }
+// src/app/courses/layout.tsx
+import React from 'react';
+
+interface CoursesLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function CoursesLayout({ children }: CoursesLayoutProps) {
+  return (
+    <main>
+      {children}
+    </main>
+  );
+}
+
+
+

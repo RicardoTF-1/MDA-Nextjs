@@ -1,9 +1,25 @@
 "use client"
-
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-export default function BlogPostContent({ post }) {
+// Define interface for blog post data
+interface BlogPost {
+  id: string | number;
+  title: string;
+  content: string;
+  published_date?: string;
+  featured_image_url?: string;
+  category_name?: string;
+  category_slug?: string;
+  reading_time?: string | number;
+  // Add any other fields that might be used
+}
+
+interface BlogPostContentProps {
+  post: BlogPost;
+}
+
+export default function BlogPostContent({ post }: BlogPostContentProps) {
   const [formattedDate, setFormattedDate] = useState('');
   
   useEffect(() => {
@@ -18,10 +34,9 @@ export default function BlogPostContent({ post }) {
   }, [post.published_date]);
   
   // Function to create markup from HTML content
-  const createMarkup = (htmlContent) => {
+  const createMarkup = (htmlContent: string) => {
     return { __html: htmlContent };
   };
-
   // Debug outputs to help troubleshoot
   console.log("Post data received:", post);
   console.log("Content type:", typeof post.content);
@@ -87,3 +102,6 @@ export default function BlogPostContent({ post }) {
     </article>
   );
 }
+
+
+

@@ -13,6 +13,11 @@ import {
   bestSellerVariants
 } from '../../../hooks/useAnimatedCardProps';
 
+// Define a proper interface for icon elements
+interface IconElementProps {
+  className?: string;
+}
+
 const ClassCProgramCard: React.FC<ClassCProgramCardProps> = ({ 
   title, 
   subtitle, 
@@ -33,7 +38,7 @@ const ClassCProgramCard: React.FC<ClassCProgramCardProps> = ({
     if (!icon) return null;
     
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon, { 
+      return React.cloneElement(icon as React.ReactElement<IconElementProps>, { 
         className: "text-emerald-400"
       });
     }
@@ -115,3 +120,5 @@ const ClassCProgramCard: React.FC<ClassCProgramCardProps> = ({
 };
 
 export default ClassCProgramCard;
+
+
